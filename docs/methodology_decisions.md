@@ -15,11 +15,18 @@ Status: **proposed**. Each needs author agreement and, where marked, supervisor 
 | D9 | "Net of market-wide growth" | Year FE do this; excess growth (g - year median) used for thresholds | Equivalent within TWFE; thresholds need a relative measure | No |
 | D10 | System GMM as robustness | Kept (R pgmm + Python pydynpd step 8, collapsed instruments) + Anderson-Hsiao IV in Python. See D10 note below | Instrument proliferation risk with N = 29 | No |
 | D11 | Report null without size | Report 95% CIs in +10pp-growth units and minimum detectable effects | A null must show what it rules out | No |
+| D12 | Clustered-SE small-sample correction counted insurer and year effects (linearmodels default) | Count year effects but not insurer effects, which are nested within the insurer clusters (Stata xtreg / reghdfe convention; Cameron & Miller, 2015). Implemented with year effects as explicit dummies (linearmodels ignores `count_effects=False` when `time_effects=True`). See D12 note below | Counting nested effects over-inflates clustered SEs; aligns Python with R (plm) and Stata | No |
 
-## Headline results under the proposed design (from the first validated run)
-- Lagged growth -> CR: +0.046 pp per 1 pp (SE 0.096); +10 pp growth CI [-1.4, +2.3] pp. Not significant (WCB p = 0.72).
+## D12 note: clustered-SE convention (changed 31 Oct 2026)
+- **Effect.** Coefficients, Driscoll-Kraay SEs, wild-cluster-bootstrap p-values, `nobs` and `r2_within` are unchanged. Every insurer-clustered SE is multiplied by sqrt((N-k-G-(T-1)) / (N-k-(T-1))): 0.909 for the headline M1 models (sqrt(138/167)), and 0.890-0.911 across the sensitivity models.
+- **Pins.** The four pinned SEs in 07_validate.py were updated: g_L1_w 0.0571 -> 0.0519 (LR), 0.0447 -> 0.0406 (ER), 0.0960 -> 0.0873 (CR); ER ln_gwp_L1 5.657 -> 5.1425.
+- **Inference.** No growth coefficient changes significance at 5% or 10%. Size -> ER crosses 5% in two sensitivity models (M5 MID slope and raw incl. start-ups: p 0.06 -> 0.04). At 10%, lagged RET -> ER (0.13 -> 0.10) and size -> ER excl. 2020 (0.12 -> 0.08) cross. Minimum detectable effects fall about 9% (CR: 2.69 -> 2.44 pp per +10 pp growth).
+- **R.** R/twfe_and_system_gmm.R Step 1 now uses `effect = "individual"` with `factor(year)`, so plm's HC1 counts the year dummies. R's clustered SEs then equal Python's to every printed digit. R's p-values use a t distribution and Python's a normal, so p differs slightly.
+
+## Headline results under the proposed design (updated 31 Oct 2026 for D12)
+- Lagged growth -> CR: +0.046 pp per 1 pp (SE 0.087); +10 pp growth CI [-1.2, +2.2] pp. Not significant (WCB p = 0.72).
 - No evidence of convexity (quadratic or piecewise) under clustered SEs or WCB.
-- Size -> ER: -11.6 pp per log unit (p = 0.04). Expense ratio, not loss ratio, drives aggregate CR > 100%.
+- Size -> ER: -11.6 pp per log unit (p = 0.03). Expense ratio, not loss ratio, drives aggregate CR > 100%.
 - MID slope change: not significant, including when 2020 is excluded.
 - Diagnostics: serial correlation in ER and CR; heteroskedasticity; no significant cross-sectional dependence; Hausman does not reject (report RE alongside FE).
 
@@ -62,4 +69,4 @@ The step runs after 07_validate.py and its results are **not pinned**.
 - **Decision.** The thesis uses the pydynpd / xtabond2 convention (Roodman, 2009). pgmm is reported as a check that the result does not depend on the convention.
 - **pgmm results (two-step).** Lagged g: LR +0.096 (p = 0.37), ER +0.012 (p = 0.80), CR +0.165 (p = 0.19). The null holds. AR(1) rejects for LR (p = 0.001) but not for ER or CR. AR(2) never rejects. Sargan p is 0.15 to 0.77. Lagged LR is again negative (-0.17). pgmm warns that a general inverse was used for the robust covariance.
 - **Unresolved.** The AR(1) and AR(2) statistics differ between the packages even when the estimates are identical. One example is LR one-step AR(1): -2.58 in pgmm, -2.12 in pydynpd. pgmm also returns NaN for LR two-step. A third implementation (Stata xtabond2) is needed to settle which is right.
-- **TWFE in R.** Coefficients are identical to Python. Clustered SEs are uniformly 0.893 times Python's: plm's HC1 counts only the 4 slopes (177/173), while linearmodels also counts the absorbed insurer and year effects (177/138). Python's SEs are the more conservative.
+- **TWFE in R.** Coefficients are identical to Python. Before D12, clustered SEs were uniformly 0.893 times Python's: plm's HC1 counted only the 4 slopes (177/173), while linearmodels also counted the absorbed insurer and year effects (177/138). Since D12, both count slopes and year effects (177/167) and the SEs match exactly.

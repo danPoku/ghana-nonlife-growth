@@ -23,13 +23,16 @@ est <- read.csv("data/processed/estimation_sample.csv")
 pest <- pdata.frame(est, index = c("insurer_id", "year"))
 
 for (y in c("LR_w", "ER_w", "CR_w")) {
-  f <- as.formula(paste(y, "~ g_L1_w + RET + ln_gwp_L1 + LEV_net_L1_w"))
-  m <- plm(f, data = pest, model = "within", effect = "twoways")
+  # Year effects as explicit dummies so HC1 counts them, while insurer effects
+  # (nested in the insurer clusters) are not counted: the D12 convention, matching
+  # Python (linearmodels, count_effects=False) and Stata xtreg/reghdfe.
+  f <- as.formula(paste(y, "~ g_L1_w + RET + ln_gwp_L1 + LEV_net_L1_w + factor(year)"))
+  m <- plm(f, data = pest, model = "within", effect = "individual")
   cat("\n==== TWFE (M1)", y, " | insurer-clustered SEs ====\n")
-  print(coeftest(m, vcov = vcovHC(m, method = "arellano", type = "HC1", cluster = "group")))
+  ct <- coeftest(m, vcov = vcovHC(m, method = "arellano", type = "HC1", cluster = "group"))
+  print(ct[!grepl("^factor\\(year\\)", rownames(ct)), , drop = FALSE])
 }
-# Note: Python uses linearmodels' clustered estimator; small-sample corrections
-# differ slightly between packages, so SEs may differ in the 2nd-3rd decimal.
+# With this convention R's clustered SEs equal Python's (outputs/tables/regressions.csv).
 
 # -----------------------------------------------------------------------------
 # Step 2: System GMM (Blundell & Bond, 1998) as a robustness check

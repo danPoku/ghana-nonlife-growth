@@ -50,10 +50,14 @@ check(set(mm) <= {2015, 2016, 2021}, f"CR != LR+ER only in documented years {mm}
 def coef(model, term):
     r = T[(T.model == model) & (T.term == term)]
     return float(r.coef.iloc[0]), float(r.se.iloc[0])
-pins = {('LR_w|M1_linear|cluster', 'g_L1_w'): (0.0225, 0.0571),
-        ('ER_w|M1_linear|cluster', 'g_L1_w'): (0.0303, 0.0447),
-        ('CR_w|M1_linear|cluster', 'g_L1_w'): (0.0461, 0.0960),
-        ('ER_w|M1_linear|cluster', 'ln_gwp_L1'): (-11.644, 5.657)}
+# SE pins updated 31 Oct 2026 for the clustered-SE convention change (D12): the small-sample correction now
+# counts year effects but not insurer effects (nested in the insurer clusters), as in Stata xtreg/reghdfe.
+# Every clustered SE fell by sqrt((N-k-G-(T-1))/(N-k-(T-1))): sqrt(138/167) = 0.909 for these M1 models.
+# Previous pins: SE 0.0571, 0.0447, 0.0960, 5.657. Coefficients are unchanged.
+pins = {('LR_w|M1_linear|cluster', 'g_L1_w'): (0.0225, 0.0519),
+        ('ER_w|M1_linear|cluster', 'g_L1_w'): (0.0303, 0.0406),
+        ('CR_w|M1_linear|cluster', 'g_L1_w'): (0.0461, 0.0873),
+        ('ER_w|M1_linear|cluster', 'ln_gwp_L1'): (-11.644, 5.1425)}
 for (m, t), (b0, se0) in pins.items():
     b, se = coef(m, t)
     check(abs(b - b0) < 1e-3 * max(1, abs(b0)) and abs(se - se0) < 1e-3 * max(1, se0),

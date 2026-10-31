@@ -27,7 +27,9 @@ predict underwriting performance (loss, expense, combined ratio, year t) in Ghan
 ## Key decisions (see docs/methodology_decisions.md)
 ln(lagged GWP) replaces ln(assets) (assets not published per insurer); net premium-to-equity leverage control;
 growth and market-share growth in separate models; start-up years excluded + 1/99 winsorising (raw as sensitivity);
-CR constructed as LR+ER; MID tested as a post-2020 slope change (insurer-by-class data not public).
+CR constructed as LR+ER; MID tested as a post-2020 slope change (insurer-by-class data not public);
+clustered-SE correction counts year effects, not insurer effects (D12: year effects entered as explicit
+dummies in 04's fe(), since linearmodels ignores count_effects=False with time_effects=True).
 
 ## Open items
 System GMM in R (untested script); verify methods citations;

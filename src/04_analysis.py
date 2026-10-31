@@ -1,4 +1,5 @@
 import pandas as pd, numpy as np, json, warnings
+from types import SimpleNamespace
 warnings.filterwarnings('ignore')
 from linearmodels.panel import PanelOLS, RandomEffects
 """Step 4: descriptives, two-way FE models, diagnostics, wild cluster bootstrap, Anderson-Hsiao, out-of-sample check.
@@ -44,7 +45,18 @@ base.to_csv(PROCESSED/'estimation_sample.csv',index=False)
 def fe(df,y,X,cov='clustered',time=True):
     d=df.set_index(['insurer_id','year'])
     m=PanelOLS(d[y],d[X],entity_effects=True,time_effects=time,drop_absorbed=True)
-    if cov=='clustered': return m.fit(cov_type='clustered',cluster_entity=True)
+    if cov=='clustered':
+        # SE convention (D12): count year effects but not insurer effects, which are nested in the insurer
+        # clusters (as Stata xtreg/reghdfe; Cameron & Miller 2015). linearmodels ignores count_effects=False
+        # when time_effects=True, so year effects enter as explicit dummies. Coefficients are identical;
+        # r2_within is kept from the two-way fit so it still excludes the year effects.
+        yrs=sorted(d.index.get_level_values(1).unique())[1:] if time else []
+        D=pd.DataFrame({f'_yr{t}':(d.index.get_level_values(1)==t).astype(float) for t in yrs},index=d.index)
+        r=PanelOLS(d[y],pd.concat([d[X],D],axis=1),entity_effects=True,drop_absorbed=True).fit(
+            cov_type='clustered',cluster_entity=True,count_effects=False)
+        X=[c for c in r.params.index if not c.startswith('_yr')]
+        return SimpleNamespace(params=r.params[X],std_errors=r.std_errors[X],tstats=r.tstats[X],pvalues=r.pvalues[X],
+                               nobs=r.nobs,rsquared_within=m.fit().rsquared_within)
     if cov=='dk': return m.fit(cov_type='kernel',kernel='bartlett',bandwidth=2)
     return m.fit()
 def tidy(res,name):

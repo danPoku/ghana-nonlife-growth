@@ -1,38 +1,24 @@
 
 ==== TWFE (M1) LR_w  | insurer-clustered SEs ====
-
-t test of coefficients:
-
-               Estimate Std. Error t value Pr(>|t|)
-g_L1_w        0.0225004  0.0509854  0.4413   0.6597
-RET           0.0247440  0.1087072  0.2276   0.8203
-ln_gwp_L1     3.3435365  3.3910000  0.9860   0.3259
-LEV_net_L1_w -0.0084813  0.0394263 -0.2151   0.8300
-
+                 Estimate Std. Error    t value  Pr(>|t|)
+g_L1_w        0.022500377 0.05189324  0.4335897 0.6652634
+RET           0.024743986 0.11064284  0.2236384 0.8233694
+ln_gwp_L1     3.343536537 3.45137863  0.9687539 0.3343628
+LEV_net_L1_w -0.008481288 0.04012826 -0.2113545 0.8329225
 
 ==== TWFE (M1) ER_w  | insurer-clustered SEs ====
-
-t test of coefficients:
-
-               Estimate Std. Error t value Pr(>|t|)   
-g_L1_w         0.030286   0.039904  0.7590 0.449163   
-RET           -0.293700   0.104401 -2.8132 0.005622 **
-ln_gwp_L1    -11.643715   5.052547 -2.3045 0.022686 * 
-LEV_net_L1_w   0.011284   0.062240  0.1813 0.856401   
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
+                 Estimate Std. Error    t value    Pr(>|t|)
+g_L1_w         0.03028574 0.04061411  0.7456950 0.457119976
+RET           -0.29369962 0.10625987 -2.7639750 0.006490483
+ln_gwp_L1    -11.64371461 5.14251056 -2.2642082 0.025120536
+LEV_net_L1_w   0.01128387 0.06334825  0.1781244 0.858886511
 
 ==== TWFE (M1) CR_w  | insurer-clustered SEs ====
-
-t test of coefficients:
-
-                Estimate  Std. Error t value Pr(>|t|)
-g_L1_w        0.04614600  0.08574398  0.5382   0.5913
-RET          -0.27428435  0.21516007 -1.2748   0.2045
-ln_gwp_L1    -9.24502171  6.86508212 -1.3467   0.1803
-LEV_net_L1_w -0.00057485  0.06348869 -0.0091   0.9928
-
+                  Estimate Std. Error     t value  Pr(>|t|)
+g_L1_w        0.0461459996 0.08727070  0.52876854 0.5978154
+RET          -0.2742843498 0.21899111 -1.25249080 0.2125095
+ln_gwp_L1    -9.2450217072 6.98731870 -1.32311436 0.1879855
+LEV_net_L1_w -0.0005748545 0.06461914 -0.00889604 0.9929149
 
 ==== System GMM LR (two-step, Windmeijer-robust SEs) ====
 Twoways effects Two-steps model System GMM 
