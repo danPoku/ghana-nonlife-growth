@@ -59,6 +59,17 @@ for (m, t), (b0, se0) in pins.items():
     check(abs(b - b0) < 1e-3 * max(1, abs(b0)) and abs(se - se0) < 1e-3 * max(1, se0),
           f"pinned result {m} {t}: coef {b:.4f} (expected {b0}), se {se:.4f} (expected {se0})")
 
+# 5. Deflator: annual-average CPI inflation from the WDI snapshot (descriptive g_real only)
+cpi = P.drop_duplicates('year').set_index('year').cpi_avg_yoy
+miss = [y for y in range(2015, 2024) if pd.isna(cpi.get(y))]
+check(not miss, f"cpi_avg_yoy present for every year 2015-2023 (missing: {miss})")
+n_blank = int(P.cpi_avg_source.fillna('').str.strip().eq('').sum())
+check(n_blank == 0, f"every row has a cpi_avg_source ({n_blank} blank)")
+g_real = 100 * ((1 + P.g / 100) / (1 + P.cpi_avg_yoy / 100) - 1)
+same_na = (g_real.isna() == P.g_real.isna()).all()
+max_dev = float((g_real - P.g_real).abs().max())
+check(same_na and max_dev <= 1e-9, f"g_real = g deflated by cpi_avg_yoy (max deviation {max_dev:.1e})")
+
 print("\n".join(notes + fails))
 print(f"\n{len(notes)} passed, {len(fails)} failed")
 sys.exit(1 if fails else 0)

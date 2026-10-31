@@ -1,2 +1,4 @@
 # NIC extractions are checksum-verified (mixed line endings): store and check out byte-for-byte
 data/raw/nic_text/*.txt -text
+# WDI snapshot: keep the raw API response byte-for-byte
+data/raw/macro/*.json -text

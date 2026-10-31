@@ -15,3 +15,6 @@ venv/
 
 # Facultative outputs derive from the confidential production report: never publish
 outputs/tables/fac_*
+
+# Personal scratch workbook: never track
+data/processed/panel_master_roughwork.xlsx

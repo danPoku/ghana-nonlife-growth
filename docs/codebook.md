@@ -22,7 +22,8 @@ Sources: NIC Annual Reports 2019, 2020, 2022, 2024 (insurer tables). Provenance 
 | `g_flag_nic_disagree` | 263 | g_calc and NIC % differ by > 5 pp |
 | `g_mkt_matched` | 239 | Market growth over insurers present in both years, % |
 | `g_excess` | 232 | g minus year median g, pp |
-| `g_real` | 232 | g deflated by December CPI inflation, % |
+| `g_real` | 232 | g deflated by annual-average CPI inflation (`cpi_avg_yoy`), % |
+| `g_real_dec` | 232 | g deflated by December CPI inflation (`cpi_dec_yoy`), %; for comparison |
 | `d_ms` | 208 | Change in market share, pp |
 | `LR` | 262 | Loss (claims) ratio, % (NIC: net claims incurred / NEP incl. reinsurance commission) |
 | `ER` | 261 | Expense ratio, % (NIC: management + commission expense / NEP [+ reins. income]) |
@@ -54,7 +55,9 @@ Sources: NIC Annual Reports 2019, 2020, 2022, 2024 (insurer tables). Provenance 
 | `ifrs17` | 263 | 1 if year >= 2023 |
 | `merger_break` | 263 | SanlamAllianz 2024 (Allianz absorbed) |
 | `cpi_dec_yoy` | 263 | December y/y CPI inflation, % |
-| `cpi_source` | 263 | Source of CPI value (verify where marked) |
+| `cpi_dec_source` | 263 | Source of the December CPI value (verify where marked) |
+| `cpi_avg_yoy` | 263 | Annual-average CPI inflation, % (World Bank WDI FP.CPI.TOTL.ZG snapshot, orig. GSS) |
+| `cpi_avg_source` | 263 | Source and retrieval date of `cpi_avg_yoy` |
 | `g_L1` | 228 | g lagged one year (consecutive years only) |
 | `g_excess_L1` | 228 | g_excess lagged one year (consecutive years only) |
 | `d_ms_L1` | 204 | d_ms lagged one year (consecutive years only) |

@@ -5,8 +5,8 @@ everything else from the latest report containing it. Overlapping vintages
 were found to agree exactly (see 07_validate.py), so the rule affects
 precision only, not values.
 """
-import pandas as pd, numpy as np
-from config import INTERIM, PROCESSED
+import pandas as pd, numpy as np, json, re
+from config import INTERIM, PROCESSED, RAW_MACRO, WDI_CPI_FILE
 
 df = pd.read_csv(INTERIM/'nic_long_all_vintages.csv')
 ins = df[~df.insurer_id.str.startswith(('TOTAL', 'NIC'))].copy()
@@ -65,17 +65,25 @@ P['gwp_basis']=np.where(P.year==2024,'Insurance Revenue (IFRS 17)','Gross Writte
 P.loc[P.year==2024,['g','g_excess','d_ms']]=np.nan  # IR vs GWP not comparable
 P.loc[P.year==2024,'g_source']='not computed: 2024 is Insurance Revenue'
 P['last_year']=P.groupby('insurer_id').year.transform('max')
-infl={2015:(17.7,'GSS (to verify)'),2016:(15.4,'GSS (to verify)'),2017:(11.8,'GSS (to verify)'),2018:(9.4,'GSS (to verify)'),
-2019:(7.9,'NIC 2019 Annual Report'),2020:(10.4,'NIC 2020 Annual Report'),2021:(12.6,'GSS (to verify)'),2022:(54.1,'NIC 2022 Annual Report'),
+# December y/y CPI inflation (kept for comparison; see docs/data_issues.md A14)
+dec_bul='GSS Dec bulletins (levels-derived, corroborated)'
+infl={2015:(17.7,'GSS CPI Statistical Bulletin Dec 2015 (rel. 13 Jan 2016), verified'),2016:(15.4,dec_bul),2017:(11.8,dec_bul),2018:(9.4,dec_bul),
+2019:(7.9,'NIC 2019 Annual Report'),2020:(10.4,'NIC 2020 Annual Report'),2021:(12.6,'GSS CPI Statistical Bulletin Dec 2021 (rel. 12 Jan 2022), verified'),2022:(54.1,'NIC 2022 Annual Report'),
 2023:(23.2,'NIC 2024 Annual Report'),2024:(23.8,'NIC 2024 Annual Report')}
-P['cpi_dec_yoy']=P.year.map(lambda y:infl[y][0]); P['cpi_source']=P.year.map(lambda y:infl[y][1])
-P['g_real']=100*((1+P.g/100)/(1+P.cpi_dec_yoy/100)-1)
+P['cpi_dec_yoy']=P.year.map(lambda y:infl[y][0]); P['cpi_dec_source']=P.year.map(lambda y:infl[y][1])
+# Annual-average CPI inflation from the offline WDI snapshot (premium is a flow, so the average is the deflator)
+wdi={int(r['date']):r['value'] for r in json.loads(WDI_CPI_FILE.read_text(encoding='utf-8'))[1] if r['value'] is not None}
+retrieved=re.search(r'\*\*Retrieved:\*\* (\d{4}-\d{2}-\d{2})',(RAW_MACRO/'README.md').read_text(encoding='utf-8')).group(1)
+P['cpi_avg_yoy']=P.year.map(wdi)
+P['cpi_avg_source']=np.where(P.cpi_avg_yoy.notna(),f'World Bank WDI FP.CPI.TOTL.ZG (orig. GSS), retrieved {retrieved}','')
+P['g_real']=100*((1+P.g/100)/(1+P.cpi_avg_yoy/100)-1)
+P['g_real_dec']=100*((1+P.g/100)/(1+P.cpi_dec_yoy/100)-1)
 # lags for regression
 lag=P[['insurer_id','year','g','g_excess','d_ms','RET','LEV_net','ln_gwp','LR','ER','CR']].copy(); lag['year']+=1
 P=P.merge(lag.add_suffix('_L1').rename(columns={'insurer_id_L1':'insurer_id','year_L1':'year'}),on=['insurer_id','year'],how='left')
-cols=['insurer_id','insurer_name','year','gwp_basis','gwp','mkt_gwp','ms','g','g_source','g_calc','chg_gwp_pct','g_flag_nic_disagree','g_mkt_matched','g_excess','g_real','d_ms',
+cols=['insurer_id','insurer_name','year','gwp_basis','gwp','mkt_gwp','ms','g','g_source','g_calc','chg_gwp_pct','g_flag_nic_disagree','g_mkt_matched','g_excess','g_real','g_real_dec','d_ms',
 'LR','ER','CR','CR_nic','cr_nic_mismatch','RET','nwp','LEV_net','LEV_gross','equity_proxy','ln_gwp','claims_reserve_ratio','tech_reserve_cover','inv_yield','roa','roe','pat','chg_nwp_pct','chg_cap_surplus','prop_inv_assets',
-'first_year','last_year','entrant','firm_age_in_panel','startup','post_mid','covid','ifrs17','merger_break','cpi_dec_yoy','cpi_source',
+'first_year','last_year','entrant','firm_age_in_panel','startup','post_mid','covid','ifrs17','merger_break','cpi_dec_yoy','cpi_dec_source','cpi_avg_yoy','cpi_avg_source',
 'g_L1','g_excess_L1','d_ms_L1','RET_L1','LEV_net_L1','ln_gwp_L1','LR_L1','ER_L1','CR_L1']
 P=P[cols]; P.to_csv(PROCESSED/'panel_master.csv',index=False)
 print(P.shape, P.insurer_id.nunique()); print(P.groupby('year').agg(n=('insurer_id','size'),lr=('LR','count'),g=('g','count'),gL1=('g_L1','count')).T)

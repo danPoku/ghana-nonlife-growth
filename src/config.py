@@ -4,6 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RAW_NIC = ROOT / "data" / "raw" / "nic_text"
 RAW_PROD = ROOT / "data" / "raw" / "production"
+RAW_MACRO = ROOT / "data" / "raw" / "macro"
+WDI_CPI_FILE = RAW_MACRO / "wdi_FP.CPI.TOTL.ZG_GH.json"   # snapshot written once by src/00_fetch_macro.py
 INTERIM = ROOT / "data" / "interim"
 PROCESSED = ROOT / "data" / "processed"
 TABLES = ROOT / "outputs" / "tables"

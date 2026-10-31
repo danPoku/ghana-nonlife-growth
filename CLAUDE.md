@@ -30,5 +30,5 @@ growth and market-share growth in separate models; start-up years excluded + 1/9
 CR constructed as LR+ER; MID tested as a post-2020 slope change (insurer-by-class data not public).
 
 ## Open items
-System GMM in R (untested script); verify CPI 2015-18 & 2021 vs GSS; verify methods citations;
+System GMM in R (untested script); verify methods citations;
 identify the reinsurer behind the production file.

@@ -51,11 +51,11 @@ ax.set_title('Figure 4. Effect of lagged premium growth on underwriting ratios (
 f.tight_layout(); f.savefig(FIGURES/'F4_coefficients.png',dpi=200)
 # F5 nominal vs real growth
 f,ax=plt.subplots(figsize=(8,3.8)); s=I[I.year.between(2016,2023)]
-P=pd.read_csv(PROCESSED/'panel_master.csv'); cpi=P.drop_duplicates('year').set_index('year').cpi_dec_yoy
+P=pd.read_csv(PROCESSED/'panel_master.csv'); cpi=P.drop_duplicates('year').set_index('year').cpi_avg_yoy
 real=100*((1+s.g_mkt/100)/(1+s.year.map(cpi)/100)-1)
-ax.bar(s.year-.2,s.g_mkt,.4,label='Nominal GWP growth',color='#1f4e79'); ax.bar(s.year+.2,real,.4,label='Real (Dec CPI-deflated)',color='#a9d18e')
+ax.bar(s.year-.2,s.g_mkt,.4,label='Nominal GWP growth',color='#1f4e79'); ax.bar(s.year+.2,real,.4,label='Real (annual-avg CPI-deflated)',color='#a9d18e')
 ax.axhline(0,color='k',lw=.8); ax.set_xticks(s.year); ax.set_ylabel('%'); ax.legend(frameon=False,fontsize=8)
 ax.set_title('Figure 5. Non-life market GWP growth (excl. GOGIP): nominal vs real',loc='left',fontsize=10)
-f.text(.01,.01,'CPI 2016–18, 2021 from GSS pending verification; 2019, 2020, 2022, 2023 as stated in NIC reports.',fontsize=7)
+f.text(.01,.01,f"Deflator: annual-average CPI inflation, World Bank WDI FP.CPI.TOTL.ZG (orig. GSS), retrieved {P.cpi_avg_source.str.extract(r'retrieved (\d{4})')[0].dropna().iloc[0]}.",fontsize=7)
 f.tight_layout(rect=(0,.04,1,1)); f.savefig(FIGURES/'F5_nominal_real_growth.png',dpi=200)
 

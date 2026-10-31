@@ -45,6 +45,10 @@ The run ends with **26 validation checks**. All must pass before results are use
   **Confidential (contains client names) and excluded from git.** Copy it in manually to run step 6,
   together with `foreign_cedants.txt` (one foreign cedant name per line, also confidential).
   Step 6 outputs (`outputs/tables/fac_*`) are git-ignored for the same reason.
+- **Macro data:** `data/raw/macro/` holds an offline snapshot of World Bank WDI `FP.CPI.TOTL.ZG`
+  (Ghana annual-average CPI inflation, orig. GSS), used to deflate premium growth (`g_real`, Figure 5).
+  The pipeline reads only the snapshot, so it runs offline and is reproducible. To refresh it, run
+  `python src/00_fetch_macro.py` (not part of `run_all.py`), then rerun the pipeline.
 
 ## Documentation
 
