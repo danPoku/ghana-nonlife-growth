@@ -14,7 +14,8 @@ src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in da
 - 04 models + diagnostics -> outputs/tables
 - 05 figures -> outputs/figures
 - 06 facultative appendix (skips if confidential file absent)
-- 07 validation: 29 checks incl. pinned headline coefficients. Must pass before results are used.
+- 07 validation: 30 checks incl. pinned headline coefficients. Must pass before results are used.
+  Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
 - 08 System GMM robustness (pydynpd); runs after 07, results not pinned
 
 ## Rules
@@ -25,6 +26,8 @@ src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in da
 - 2024 "GWP" column is Insurance Revenue: never compute 2024 growth from it.
 - Headline inference = insurer-clustered SEs + wild cluster bootstrap. Driscoll-Kraay is unreliable at T=7.
 - Never commit data/raw/production/ (client names).
+- Never commit data/raw/quarterly/ (NIC quarterly returns workbook: unaudited, confidential pending source confirmation).
+- Growth across a merger is missing (D13): add new mergers to MERGERS in src/config.py, never hard-code them.
 
 ## Key decisions (see docs/methodology_decisions.md)
 ln(lagged GWP) replaces ln(assets) (assets not published per insurer); net premium-to-equity leverage control;

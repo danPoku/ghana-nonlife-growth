@@ -15,16 +15,16 @@ Sources: NIC Annual Reports 2019, 2020, 2022, 2024 (insurer tables). Provenance 
 | `gwp` | 262 | Gross written premium, GHS (exact to 2019; rounded GHS m from 2020) |
 | `mkt_gwp` | 263 | Sum of insurer GWP in year (GOGIP pool excluded), GHS |
 | `ms` | 262 | Market share of mkt_gwp, % |
-| `g` | 232 | PRIMARY premium growth, % (see g_source) |
-| `g_source` | 263 | Origin of g: computed from exact GWP / NIC change table / computed from rounded GWP |
+| `g` | 231 | PRIMARY premium growth, % (see g_source) |
+| `g_source` | 263 | Origin of g: computed from exact GWP / NIC change table / computed from rounded GWP / not computed: 2024 is Insurance Revenue / not computed: merger year (D13) |
 | `g_calc` | 232 | Growth computed from gwp (consecutive years only), % |
 | `chg_gwp_pct` | 205 | NIC published change in GWP, % |
 | `g_flag_nic_disagree` | 263 | g_calc and NIC % differ by > 5 pp |
 | `g_mkt_matched` | 239 | Market growth over insurers present in both years, % |
-| `g_excess` | 232 | g minus year median g, pp |
-| `g_real` | 232 | g deflated by annual-average CPI inflation (`cpi_avg_yoy`), % |
-| `g_real_dec` | 232 | g deflated by December CPI inflation (`cpi_dec_yoy`), %; for comparison |
-| `d_ms` | 208 | Change in market share, pp |
+| `g_excess` | 231 | g minus year median g, pp |
+| `g_real` | 231 | g deflated by annual-average CPI inflation (`cpi_avg_yoy`), % |
+| `g_real_dec` | 231 | g deflated by December CPI inflation (`cpi_dec_yoy`), %; for comparison |
+| `d_ms` | 207 | Change in market share, pp |
 | `LR` | 262 | Loss (claims) ratio, % (NIC: net claims incurred / NEP incl. reinsurance commission) |
 | `ER` | 261 | Expense ratio, % (NIC: management + commission expense / NEP [+ reins. income]) |
 | `CR` | 261 | Combined ratio constructed as LR + ER, % |
@@ -53,14 +53,14 @@ Sources: NIC Annual Reports 2019, 2020, 2022, 2024 (insurer tables). Provenance 
 | `post_mid` | 263 | 1 if year >= 2020 (Motor Insurance Database) |
 | `covid` | 263 | 1 if 2020 |
 | `ifrs17` | 263 | 1 if year >= 2023 |
-| `merger_break` | 263 | SanlamAllianz 2024 (Allianz absorbed) |
+| `merger_break` | 263 | First year of a combined entity, from `MERGERS` in src/config.py: RegencyNem 2016 (NEM absorbed), SanlamAllianz 2024 (Allianz absorbed). Growth columns are missing in these rows (D13) |
 | `cpi_dec_yoy` | 263 | December y/y CPI inflation, % |
 | `cpi_dec_source` | 263 | Source of the December CPI value (verify where marked) |
 | `cpi_avg_yoy` | 263 | Annual-average CPI inflation, % (World Bank WDI FP.CPI.TOTL.ZG snapshot, orig. GSS) |
 | `cpi_avg_source` | 263 | Source and retrieval date of `cpi_avg_yoy` |
-| `g_L1` | 228 | g lagged one year (consecutive years only) |
-| `g_excess_L1` | 228 | g_excess lagged one year (consecutive years only) |
-| `d_ms_L1` | 204 | d_ms lagged one year (consecutive years only) |
+| `g_L1` | 227 | g lagged one year (consecutive years only) |
+| `g_excess_L1` | 227 | g_excess lagged one year (consecutive years only) |
+| `d_ms_L1` | 203 | d_ms lagged one year (consecutive years only) |
 | `RET_L1` | 233 | RET lagged one year (consecutive years only) |
 | `LEV_net_L1` | 207 | LEV_net lagged one year (consecutive years only) |
 | `ln_gwp_L1` | 233 | ln_gwp lagged one year (consecutive years only) |

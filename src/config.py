@@ -29,3 +29,12 @@ PRODUCTION_FILE = RAW_PROD / "Production_Report_for_2025-05-08_10_32_51.xlsx"
 # Estimation window (IFRS 4 period; Y years). 2023-24 are IFRS 17: descriptive only.
 EST_START, EST_END = 2016, 2022
 WINSOR = (0.01, 0.99)
+
+# Mergers (D13): growth across a merger is not organic, so g and derived growth columns are set to
+# missing in the first year of the combined entity. year = first year of the combined entity.
+MERGERS = [
+    dict(insurer_id="REGENCYNEM", year=2016, absorbed="NEM Insurance Ghana",
+         source="NIC quarterly returns workbook (Q4 2013-2015 list Regency and NEM separately; Q4 2016 lists RegencyNem)"),
+    dict(insurer_id="SAHAM_SANLAM", year=2024, absorbed="Allianz Insurance Company",
+         source="NIC 2024 Annual Report (Allianz N-A in 2024)"),
+]

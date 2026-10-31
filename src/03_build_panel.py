@@ -6,7 +6,7 @@ were found to agree exactly (see 07_validate.py), so the rule affects
 precision only, not values.
 """
 import pandas as pd, numpy as np, json, re
-from config import INTERIM, PROCESSED, RAW_MACRO, WDI_CPI_FILE
+from config import INTERIM, PROCESSED, RAW_MACRO, WDI_CPI_FILE, MERGERS
 
 df = pd.read_csv(INTERIM/'nic_long_all_vintages.csv')
 ins = df[~df.insurer_id.str.startswith(('TOTAL', 'NIC'))].copy()
@@ -44,6 +44,12 @@ P.loc[(P.year<=2019)&P.g.isna(),'g']=P.chg_gwp_pct   # 2015 from NIC table (no 2
 P['g_source']=np.select([(P.year==2015)&P.chg_gwp_pct.notna(),(P.year<=2019)&P.g_calc.notna(),(P.year.between(2020,2022))&P.chg_gwp_pct.notna(),P.g_calc.notna()],
    ['NIC change table','computed exact GHS','NIC change table','computed rounded GHS m'],default='missing')
 P['g_flag_nic_disagree']=(P.g_calc-P.chg_gwp_pct).abs()>5
+# merger rule (D13): growth across a merger is not organic -> missing. Applied before g_excess so the merger
+# year does not move the year median; g_excess, g_real, g_real_dec and the _L1 lags follow from g.
+mrg=pd.DataFrame(MERGERS)
+P['merger_break']=pd.MultiIndex.from_frame(P[['insurer_id','year']]).isin(pd.MultiIndex.from_frame(mrg[['insurer_id','year']]))
+assert P.merger_break.sum()==len(mrg), 'a MERGERS entry matches no insurer-year in the panel'
+P.loc[P.merger_break,'g']=np.nan
 mg=P.groupby('year').apply(lambda d: 100*(d.gwp.sum()/d.gwp_prev[d.gwp_prev.notna()].sum()-1) if d.gwp_prev.notna().any() else np.nan,include_groups=False).rename('g_mkt_matched')
 P=P.merge(mg,on='year',how='left')
 P['g_excess']=P.g-P.groupby('year').g.transform('median')
@@ -60,7 +66,6 @@ P['firm_age_in_panel']=P.year-P.first_year
 P['startup']=P.entrant&(P.firm_age_in_panel<=1)
 P['post_mid']=(P.year>=2020).astype(int); P['covid']=(P.year==2020).astype(int)
 P['ifrs17']=(P.year>=2023).astype(int)
-P['merger_break']=(P.insurer_id=='SAHAM_SANLAM')&(P.year==2024)
 P['gwp_basis']=np.where(P.year==2024,'Insurance Revenue (IFRS 17)','Gross Written Premium')
 P.loc[P.year==2024,['g','g_excess','d_ms']]=np.nan  # IR vs GWP not comparable
 P.loc[P.year==2024,'g_source']='not computed: 2024 is Insurance Revenue'
@@ -78,6 +83,8 @@ P['cpi_avg_yoy']=P.year.map(wdi)
 P['cpi_avg_source']=np.where(P.cpi_avg_yoy.notna(),f'World Bank WDI FP.CPI.TOTL.ZG (orig. GSS), retrieved {retrieved}','')
 P['g_real']=100*((1+P.g/100)/(1+P.cpi_avg_yoy/100)-1)
 P['g_real_dec']=100*((1+P.g/100)/(1+P.cpi_dec_yoy/100)-1)
+P.loc[P.merger_break,['g','g_excess','g_real','g_real_dec','d_ms']]=np.nan  # merger rule (D13), explicit
+P.loc[P.merger_break,'g_source']='not computed: merger year'
 # lags for regression
 lag=P[['insurer_id','year','g','g_excess','d_ms','RET','LEV_net','ln_gwp','LR','ER','CR']].copy(); lag['year']+=1
 P=P.merge(lag.add_suffix('_L1').rename(columns={'insurer_id_L1':'insurer_id','year_L1':'year'}),on=['insurer_id','year'],how='left')

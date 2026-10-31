@@ -6,7 +6,7 @@ to code or data that moves them is noticed and must be explained.
 """
 import sys, json
 import numpy as np, pandas as pd
-from config import INTERIM, PROCESSED, TABLES
+from config import INTERIM, PROCESSED, TABLES, MERGERS
 
 fails, notes = [], []
 def check(cond, msg):
@@ -41,10 +41,13 @@ for y in range(2020, 2025):
 # 3. Panel structure
 check(P.insurer_id.nunique() == 29, f"29 insurer entities (found {P.insurer_id.nunique()})")
 check(len(P) == 263, f"263 insurer-years in master panel (found {len(P)})")
-check(len(E) == 177, f"177 observations in estimation sample (found {len(E)})")
+check(len(E) == 176, f"176 observations in estimation sample (found {len(E)})")  # 177 before merger rule (D13)
 check(int(P.startup.sum()) == 10, f"10 start-up insurer-years flagged (found {int(P.startup.sum())})")
 mm = P[P.cr_nic_mismatch].year.value_counts().to_dict()
 check(set(mm) <= {2015, 2016, 2021}, f"CR != LR+ER only in documented years {mm}")
+mrg = P.set_index(['insurer_id', 'year']).reindex([(m['insurer_id'], m['year']) for m in MERGERS])
+check(mrg.g.isna().all() and len(mrg) == len(MERGERS),
+      f"g missing in every merger year ({', '.join(f'{i} {y}' for i, y in mrg.index)})")
 
 # 4. Headline results pinned from the first validated run
 def coef(model, term):
@@ -54,10 +57,13 @@ def coef(model, term):
 # counts year effects but not insurer effects (nested in the insurer clusters), as in Stata xtreg/reghdfe.
 # Every clustered SE fell by sqrt((N-k-G-(T-1))/(N-k-(T-1))): sqrt(138/167) = 0.909 for these M1 models.
 # Previous pins: SE 0.0571, 0.0447, 0.0960, 5.657. Coefficients are unchanged.
-pins = {('LR_w|M1_linear|cluster', 'g_L1_w'): (0.0225, 0.0519),
-        ('ER_w|M1_linear|cluster', 'g_L1_w'): (0.0303, 0.0406),
-        ('CR_w|M1_linear|cluster', 'g_L1_w'): (0.0461, 0.0873),
-        ('ER_w|M1_linear|cluster', 'ln_gwp_L1'): (-11.644, 5.1425)}
+# Updated for merger rule (RegencyNem 2016); see docs (D13). N 177 -> 176, winsor bounds from the 176-row
+# sample, SEs on the D12 convention. Previous pins: coef 0.0225 / 0.0303 / 0.0461 / -11.644,
+# SE 0.0519 / 0.0406 / 0.0873 / 5.1425.
+pins = {('LR_w|M1_linear|cluster', 'g_L1_w'): (0.0261, 0.0523),
+        ('ER_w|M1_linear|cluster', 'g_L1_w'): (0.0324, 0.0411),
+        ('CR_w|M1_linear|cluster', 'g_L1_w'): (0.0547, 0.0881),
+        ('ER_w|M1_linear|cluster', 'ln_gwp_L1'): (-11.427, 5.1405)}
 for (m, t), (b0, se0) in pins.items():
     b, se = coef(m, t)
     check(abs(b - b0) < 1e-3 * max(1, abs(b0)) and abs(se - se0) < 1e-3 * max(1, se0),
