@@ -6,14 +6,16 @@ supervisor Dr. Perpetual Andam Boiquaye. Question: does insurer-level premium gr
 predict underwriting performance (loss, expense, combined ratio, year t) in Ghana's non-life sector?
 
 ## Pipeline
-`python run_all.py` runs src/01..07 in order (resume with `--from N`). R/twfe_and_system_gmm.R runs after.
+`python run_all.py` runs src/01..08 in order (resume with `--from N`). R/twfe_and_system_gmm.R runs after.
+src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in data/raw/macro/.
 - 01 verifies SHA-256 of data/raw/nic_text/*.txt, parses table blocks
 - 02 maps blocks to variables by (report, header line); validated against src/expected_blocks.json
 - 03 builds data/processed/panel_master.csv (29 insurers x 2015-2024, unbalanced)
 - 04 models + diagnostics -> outputs/tables
 - 05 figures -> outputs/figures
 - 06 facultative appendix (skips if confidential file absent)
-- 07 validation: 26 checks incl. pinned headline coefficients. Must pass before results are used.
+- 07 validation: 29 checks incl. pinned headline coefficients. Must pass before results are used.
+- 08 System GMM robustness (pydynpd); runs after 07, results not pinned
 
 ## Rules
 - NEVER edit data/raw/. The NIC text files are the exact extractions the line map was built on.
@@ -32,5 +34,5 @@ clustered-SE correction counts year effects, not insurer effects (D12: year effe
 dummies in 04's fe(), since linearmodels ignores count_effects=False with time_effects=True).
 
 ## Open items
-System GMM in R (untested script); verify methods citations;
+AR tests differ between pydynpd and R pgmm (needs a third reference, e.g. Stata xtabond2); verify methods citations;
 identify the reinsurer behind the production file.
