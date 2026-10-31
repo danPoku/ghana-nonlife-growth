@@ -34,7 +34,10 @@ The run ends with **26 validation checks**. All must pass before results are use
 | 5 | `src/05_figures.py` | Figures 1–5 → `outputs/figures/` |
 | 6 | `src/06_facultative.py` | Supplementary facultative-reinsurance appendix (skipped if confidential file absent) |
 | 7 | `src/07_validate.py` | Data-fidelity and pinned-result checks |
-| R | `R/twfe_and_system_gmm.R` | TWFE replication + System GMM → `outputs/tables/R_results.txt` (**untested**) |
+| 8 | `src/08_system_gmm.py` | System GMM robustness (pydynpd) → `outputs/tables/system_gmm*.csv` |
+| 9 | `src/09_total_assets.py` | Total assets as size control, from the confidential quarterly returns workbook (skipped if absent) → `outputs/tables/robust_total_assets*.csv` |
+| 10 | `src/10_leave_one_out.py` | Leave-one-insurer-out re-estimation of M1 → `outputs/tables/robust_leave_one_out*.csv`, Figure 6 |
+| R | `R/twfe_and_system_gmm.R` | TWFE replication + System GMM → `outputs/tables/R_results.txt` |
 
 ## Data
 

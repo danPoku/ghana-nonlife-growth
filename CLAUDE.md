@@ -6,7 +6,7 @@ supervisor Dr. Perpetual Andam Boiquaye. Question: does insurer-level premium gr
 predict underwriting performance (loss, expense, combined ratio, year t) in Ghana's non-life sector?
 
 ## Pipeline
-`python run_all.py` runs src/01..08 in order (resume with `--from N`). R/twfe_and_system_gmm.R runs after.
+`python run_all.py` runs src/01..10 in order (resume with `--from N`). R/twfe_and_system_gmm.R runs after.
 src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in data/raw/macro/.
 - 01 verifies SHA-256 of data/raw/nic_text/*.txt, parses table blocks
 - 02 maps blocks to variables by (report, header line); validated against src/expected_blocks.json
@@ -14,9 +14,13 @@ src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in da
 - 04 models + diagnostics -> outputs/tables
 - 05 figures -> outputs/figures
 - 06 facultative appendix (skips if confidential file absent)
-- 07 validation: 30 checks incl. pinned headline coefficients. Must pass before results are used.
+- 07 validation: 32 checks incl. pinned headline coefficients. Must pass before results are used.
   Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
 - 08 System GMM robustness (pydynpd); runs after 07, results not pinned
+- 09 total assets as size control from the confidential quarterly workbook (skips if absent); not pinned
+- 10 leave-one-insurer-out for M1 (growth and size); not pinned
+Shared code: src/models.py (fe with the D12 SE convention, wcb, twdm) and src/names.py (canonical insurer IDs).
+All two-way FE models must use models.fe; never redefine it in a step.
 
 ## Rules
 - NEVER edit data/raw/. The NIC text files are the exact extractions the line map was built on.
@@ -26,15 +30,16 @@ src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in da
 - 2024 "GWP" column is Insurance Revenue: never compute 2024 growth from it.
 - Headline inference = insurer-clustered SEs + wild cluster bootstrap. Driscoll-Kraay is unreliable at T=7.
 - Never commit data/raw/production/ (client names).
-- Never commit data/raw/quarterly/ (NIC quarterly returns workbook: unaudited, confidential pending source confirmation).
+- Never commit data/raw/quarterly/ (NIC quarterly returns workbook: unaudited, confidential pending source confirmation)
+  or data/processed/confidential/ (insurer-level values derived from it). Only aggregate regression outputs may be committed.
 - Growth across a merger is missing (D13): add new mergers to MERGERS in src/config.py, never hard-code them.
 
 ## Key decisions (see docs/methodology_decisions.md)
-ln(lagged GWP) replaces ln(assets) (assets not published per insurer); net premium-to-equity leverage control;
+ln(lagged GWP) replaces ln(assets) (assets not published per insurer; workbook assets used only as a robustness check, step 09); net premium-to-equity leverage control;
 growth and market-share growth in separate models; start-up years excluded + 1/99 winsorising (raw as sensitivity);
 CR constructed as LR+ER; MID tested as a post-2020 slope change (insurer-by-class data not public);
 clustered-SE correction counts year effects, not insurer effects (D12: year effects entered as explicit
-dummies in 04's fe(), since linearmodels ignores count_effects=False with time_effects=True).
+dummies in models.fe(), since linearmodels ignores count_effects=False with time_effects=True).
 
 ## Open items
 AR tests differ between pydynpd and R pgmm (needs a third reference, e.g. Stata xtabond2); verify methods citations;

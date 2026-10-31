@@ -1,5 +1,4 @@
 import pandas as pd, numpy as np, json, warnings
-from types import SimpleNamespace
 warnings.filterwarnings('ignore')
 from linearmodels.panel import PanelOLS, RandomEffects
 """Step 4: descriptives, two-way FE models, diagnostics, wild cluster bootstrap, Anderson-Hsiao, out-of-sample check.
@@ -11,6 +10,7 @@ unreliable with T=7 and must not be used as headline evidence.
 from scipy import stats
 import statsmodels.api as sm
 from config import PROCESSED, TABLES, INTERIM
+from models import fe, twdm, wcb   # shared with steps 09 and 10 (D12 SE convention)
 P=pd.read_csv(PROCESSED/'panel_master.csv')
 R={}
 # ---------- industry trends (all years) ----------
@@ -42,23 +42,6 @@ R['sample']=dict(n=len(base),insurers=int(base.insurer_id.nunique()),years=f"{ba
   excluded_startup=int(E.startup.sum()),obs_by_year=base.year.value_counts().sort_index().to_dict())
 base.to_csv(PROCESSED/'estimation_sample.csv',index=False)
 # ---------- helpers ----------
-def fe(df,y,X,cov='clustered',time=True):
-    d=df.set_index(['insurer_id','year'])
-    m=PanelOLS(d[y],d[X],entity_effects=True,time_effects=time,drop_absorbed=True)
-    if cov=='clustered':
-        # SE convention (D12): count year effects but not insurer effects, which are nested in the insurer
-        # clusters (as Stata xtreg/reghdfe; Cameron & Miller 2015). linearmodels ignores count_effects=False
-        # when time_effects=True, so year effects enter as explicit dummies. Coefficients are identical;
-        # r2_within is kept from the two-way fit so it still excludes the year effects.
-        yrs=sorted(d.index.get_level_values(1).unique())[1:] if time else []
-        D=pd.DataFrame({f'_yr{t}':(d.index.get_level_values(1)==t).astype(float) for t in yrs},index=d.index)
-        r=PanelOLS(d[y],pd.concat([d[X],D],axis=1),entity_effects=True,drop_absorbed=True).fit(
-            cov_type='clustered',cluster_entity=True,count_effects=False)
-        X=[c for c in r.params.index if not c.startswith('_yr')]
-        return SimpleNamespace(params=r.params[X],std_errors=r.std_errors[X],tstats=r.tstats[X],pvalues=r.pvalues[X],
-                               nobs=r.nobs,rsquared_within=m.fit().rsquared_within)
-    if cov=='dk': return m.fit(cov_type='kernel',kernel='bartlett',bandwidth=2)
-    return m.fit()
 def tidy(res,name):
     t=pd.DataFrame({'coef':res.params,'se':res.std_errors,'t':res.tstats,'p':res.pvalues})
     t['model']=name; t['nobs']=res.nobs; t['r2_within']=res.rsquared_within; return t
@@ -87,8 +70,6 @@ for y in Ys:
 rows.append(tidy(fe(base.assign(CRn=wins(base.CR_nic)),'CRn',specs['M1_linear']),'CR_nic_published_w|M1_linear|cluster'))
 T=pd.concat(rows); T.index.name='term'; T.reset_index().to_csv(TABLES/'regressions.csv',index=False)
 # ---------- collinearity g vs d_ms after TWFE demeaning ----------
-def twdm(df,v):
-    x=df[v]-df.groupby('insurer_id')[v].transform('mean')-df.groupby('year')[v].transform('mean')+df[v].mean(); return x
 cc=base.dropna(subset=['d_ms_L1_w'])
 R['within_corr_g_dms']=float(np.corrcoef(twdm(cc,'g_L1_w'),twdm(cc,'d_ms_L1_w'))[0,1])
 # ---------- diagnostics on M1 for each Y ----------
@@ -129,18 +110,6 @@ for y in Ys:
     diag[y]=dict(hausman_chi2=H,hausman_p=hp,wooldridge_F=float(wt),wooldridge_p=float(wp),modwald_chi2=MW,modwald_p=float(mwp),pesaran_CD=CD,pesaran_p=float(cdp))
 R['diagnostics_M1']=diag
 # ---------- wild cluster bootstrap (WCR, Rademacher) for g_L1 in M1 ----------
-def wcb(df,y,X,var='g_L1_w',B=1999,seed=1):
-    rng=np.random.default_rng(seed); d=df.dropna(subset=[y]+X).copy()
-    cols=[y]+X; D=d[['insurer_id','year']+cols].copy()
-    for c in cols: D[c]=twdm(D,c)
-    import statsmodels.api as sm
-    full=sm.OLS(D[y],D[X]).fit(cov_type='cluster',cov_kwds={'groups':D.insurer_id}); t0=full.tvalues[var]
-    Xr=[x for x in X if x!=var]; rest=sm.OLS(D[y],D[Xr]).fit(); fit=rest.fittedvalues; u=rest.resid
-    cl=D.insurer_id.values; uc=np.unique(cl); ts=[]
-    for b in range(B):
-        w=dict(zip(uc,rng.choice([-1,1],len(uc)))); ys=fit+u*np.array([w[c] for c in cl])
-        r=sm.OLS(ys,D[X]).fit(cov_type='cluster',cov_kwds={'groups':cl}); ts.append(r.tvalues[var])
-    return float(t0), float(np.mean(np.abs(ts)>=abs(t0)))
 R['wild_cluster_bootstrap']={}
 for y in Ys:
     for s,v in [('M1_linear','g_L1_w'),('M2_quadratic','g_L1_sq_w'),('M3_piecewise','hi_g_w'),('M5_MID_slope','gxpost_w')]:

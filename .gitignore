@@ -21,3 +21,6 @@ data/processed/panel_master_roughwork.xlsx
 
 # NIC quarterly returns workbook: unaudited, confidential pending source confirmation (data_issues A15)
 data/raw/quarterly/
+
+# Outputs derived from the confidential quarterly returns workbook (step 09)
+data/processed/confidential/

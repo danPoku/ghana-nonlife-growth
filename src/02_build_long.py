@@ -7,6 +7,7 @@ so a changed input or parser fails loudly instead of silently mis-mapping.
 import json, re, sys, pandas as pd
 from config import INTERIM, ROOT
 from nic_parser import num
+from names import canon   # shared with step 09
 B={ (b['report'],b['line']):b for b in json.load(open(INTERIM/'blocks.json'))}
 MAP={
  'gwp':[(2019,2400,'GHS'),(2020,3383,'GHS_m'),(2022,2366,'GHS_m'),(2024,2316,'GHS_m')],
@@ -27,19 +28,6 @@ MAP={
  'prop_inv_assets':[(2019,4248,'%'),(2020,5212,'%'),(2022,4016,'%'),(2024,3608,'%')],
  'roe':[(2019,4299,'%'),(2020,5251,'%'),(2022,4067,'%')],
 }
-CANON=[('ACTIVA',r'^activa'),('ALLIANZ',r'^allianz(?! life)'),('BEDROCK',r'^bedrock'),('BEST',r'^best'),
-('CORONATION',r'^(coronation|wapic)'),('DONEWELL',r'^donewell(?! life)'),('ENTERPRISE',r'^enterprise(?! life)'),
-('GUA',r'^(gua(?! life)|ghana union)'),('GLICO_GEN',r'^glico general'),('HERITAGE',r'^heritage'),('HOLLARD',r'^hollard(?! life)'),
-('IMPERIAL',r'^imperial'),('LOYALTY',r'^loyalty'),('MILLENNIUM',r'^millennium'),('MULTI',r'^multi'),('NSIA',r'^nsia'),
-('PHOENIX',r'^phoenix(?! life)'),('PRIME',r'^prime'),('PRIORITY',r'^priority'),('PROVIDENT',r'^provident'),('QUALITY',r'^quality(?! life)'),
-('REGENCYNEM',r'^regencynem'),('SAHAM_SANLAM',r'^(saham|sanlam)(?!.*life)'),('SERENE',r'^serene'),('SIC',r'^sic(?! life)'),
-('STAR',r'^star(?!life)'),('SUNU',r'^sunu'),('UNIQUE',r'^unique'),('VANGUARD',r'^vanguard(?! life)')]
-def canon(n):
-    n2=n.lower().replace('*','').strip()
-    for cid,pat in CANON:
-        if re.search(pat,n2): return cid
-    return None
-
 # ---- validate every mapped block against frozen expectations ----
 EXP = json.load(open(ROOT/'src'/'expected_blocks.json'))
 errs = []

@@ -6,7 +6,8 @@ to code or data that moves them is noticed and must be explained.
 """
 import sys, json
 import numpy as np, pandas as pd
-from config import INTERIM, PROCESSED, TABLES, MERGERS
+from config import ROOT, INTERIM, PROCESSED, TABLES, MERGERS
+from models import fe
 
 fails, notes = [], []
 def check(cond, msg):
@@ -68,7 +69,13 @@ for (m, t), (b0, se0) in pins.items():
     b, se = coef(m, t)
     check(abs(b - b0) < 1e-3 * max(1, abs(b0)) and abs(se - se0) < 1e-3 * max(1, se0),
           f"pinned result {m} {t}: coef {b:.4f} (expected {b0}), se {se:.4f} (expected {se0})")
-
+# The shared helper used by step 10 (leave-one-out) reproduces the pins on the full estimation sample.
+# (07 runs before 10, so it refits with models.fe directly; step 10 also asserts its full sample equals 04.)
+X1 = ['g_L1_w', 'RET', 'ln_gwp_L1', 'LEV_net_L1_w']
+fits = {y: fe(E.dropna(subset=[y] + X1), y, X1) for y in ('LR_w', 'ER_w', 'CR_w')}
+ok = all(abs(fits[m.split('|')[0]].params[t] - b0) < 1e-3 * max(1, abs(b0)) and
+         abs(fits[m.split('|')[0]].std_errors[t] - se0) < 1e-3 * max(1, se0) for (m, t), (b0, se0) in pins.items())
+check(ok, "models.fe (step 10 helper) reproduces all four pinned results on the full estimation sample")
 # 5. Deflator: annual-average CPI inflation from the WDI snapshot (descriptive g_real only)
 cpi = P.drop_duplicates('year').set_index('year').cpi_avg_yoy
 miss = [y for y in range(2015, 2024) if pd.isna(cpi.get(y))]
@@ -79,6 +86,10 @@ g_real = 100 * ((1 + P.g / 100) / (1 + P.cpi_avg_yoy / 100) - 1)
 same_na = (g_real.isna() == P.g_real.isna()).all()
 max_dev = float((g_real - P.g_real).abs().max())
 check(same_na and max_dev <= 1e-9, f"g_real = g deflated by cpi_avg_yoy (max deviation {max_dev:.1e})")
+
+# 6. Confidential outputs derived from the quarterly returns workbook (step 09) must never be committed
+gi = [l.strip() for l in (ROOT / '.gitignore').read_text(encoding='utf-8').splitlines()]
+check('data/processed/confidential/' in gi, "data/processed/confidential/ is listed in .gitignore")
 
 print("\n".join(notes + fails))
 print(f"\n{len(notes)} passed, {len(fails)} failed")

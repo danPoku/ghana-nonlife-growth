@@ -4,7 +4,7 @@ Status: **proposed**. Each needs author agreement and, where marked, supervisor 
 
 | # | Defence version | Proposed | Reason | Sign-off? |
 |---|---|---|---|---|
-| D1 | Size control ln(total assets) | ln(GWP, t-1) | Per-insurer assets not published (A10) | Yes |
+| D1 | Size control ln(total assets) | ln(GWP, t-1) in the main models; ln(total assets, t-1) from the confidential quarterly returns workbook (A15) as a robustness check (step 09) | Per-insurer assets not published (A10); the workbook is unaudited and its source unconfirmed, so assets stay out of the main analysis | Yes |
 | D2 | No leverage control | Net insurance risk ratio (NWP / equity), t-1 | Classic premium-to-surplus underwriting risk measure; published by NIC | Yes |
 | D3 | Growth and market-share growth in one equation | Separate models (M1 vs M4) | With year FE, market-share growth ~ premium growth (within-corr 0.61) | Yes |
 | D4 | Winsorising in sensitivity only | Exclude start-up years + winsorise 1/99 in main; raw as sensitivity | Single start-up obs at 10,950% would dominate OLS (A11) | Yes |
@@ -17,6 +17,9 @@ Status: **proposed**. Each needs author agreement and, where marked, supervisor 
 | D11 | Report null without size | Report 95% CIs in +10pp-growth units and minimum detectable effects | A null must show what it rules out | No |
 | D12 | Clustered-SE small-sample correction counted insurer and year effects (linearmodels default) | Count year effects but not insurer effects, which are nested within the insurer clusters (Stata xtreg / reghdfe convention; Cameron & Miller, 2015). Implemented with year effects as explicit dummies (linearmodels ignores `count_effects=False` when `time_effects=True`). See D12 note below | Counting nested effects over-inflates clustered SEs; aligns Python with R (plm) and Stata | No |
 | D13 | Growth across mergers treated as ordinary growth | Growth across a merger is set to missing in the first year of the combined entity, rather than replaced by pro-forma growth, to keep unaudited data out of the main analysis. See D13 note below | RegencyNem 2016: +61.4% published, about +3.0% organic; the pro-forma base exists only in an unaudited workbook | No |
+
+## D1 note: size result across size measures (step 09) and leave-one-out (step 10), 31 Oct 2026
+Size -> expense ratio is consistent in direction and magnitude across size measures (ln GWP, ln assets) and in 29 leave-one-out runs (about -9 to -15 per log unit), but its significance is moderate: p = 0.051 clustered / 0.032 bootstrap with ln(assets); it loses 5% significance without CORONATION or SERENE; the two size measures cannot be separated (within r = 0.88).
 
 ## D12 note: clustered-SE convention (changed 31 Oct 2026)
 - **Effect.** Coefficients, Driscoll-Kraay SEs, wild-cluster-bootstrap p-values, `nobs` and `r2_within` are unchanged. Every insurer-clustered SE is multiplied by sqrt((N-k-G-(T-1)) / (N-k-(T-1))): 0.909 for the headline M1 models (sqrt(138/167)), and 0.890-0.911 across the sensitivity models.

@@ -67,3 +67,9 @@ Sources: NIC Annual Reports 2019, 2020, 2022, 2024 (insurer tables). Provenance 
 | `LR_L1` | 233 | LR lagged one year (consecutive years only) |
 | `ER_L1` | 232 | ER lagged one year (consecutive years only) |
 | `CR_L1` | 232 | CR lagged one year (consecutive years only) |
+
+Robustness variable (step 09 only; not in panel_master.csv or estimation_sample.csv):
+
+| Variable | Non-missing | Description |
+|---|---|---|
+| `ln_assets_L1` | 172 of 176 estimation rows | ln(total assets at 31 Dec of t-1), from the Q4 sheets of the confidential NIC quarterly returns workbook (A15), kept only where the workbook's Q4 GWP passes the concordance check against audited annual GWP. Insurer-level values are in the git-ignored `data/processed/confidential/total_assets_q4.csv` |
