@@ -1,0 +1,1283 @@
+{
+ "gwp|2019|2400": {
+  "title": "TABLE 9: GROSS PREMIUMS FOR NON-LIFE COMPANIES (2015 \u2013 2019) (GHS)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 32,
+  "first_row": [
+   "Activa",
+   [
+    "38,268,180",
+    "40,818,428",
+    "54,662,270",
+    "66,488,991",
+    "74,352,989"
+   ]
+  ]
+ },
+ "gwp|2020|3383": {
+  "title": "Table 12: GROSS PREMIUMS FOR NON-LIFE COMPANIES (2016 \u2013 2020) (GHS\u2019 million)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 32,
+  "first_row": [
+   "Activa",
+   [
+    "41",
+    "55",
+    "66",
+    "74",
+    "80"
+   ]
+  ]
+ },
+ "gwp|2022|2366": {
+  "title": "Table 16:Gross Premiums for Non-Life Companies (2018 \u2013 2022) (GHS \u2018million)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 32,
+  "first_row": [
+   "Activa",
+   [
+    "66",
+    "74",
+    "80",
+    "116",
+    "165"
+   ]
+  ]
+ },
+ "gwp|2024|2316": {
+  "title": "Table 19: Gross Written Premiums (2020 \u2013 2023) & Insurance Revenue (2024) for Non-Life Companies (GH\u00a2\u2019 million)",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 32,
+  "first_row": [
+   "Activa",
+   [
+    "80",
+    "116",
+    "165",
+    "215",
+    "249"
+   ]
+  ]
+ },
+ "pat|2019|2481": {
+  "title": "TABLE 11: PROFIT AFTER TAX FOR NON-LIFE COMPANIES (2015 \u2013 2019) (GHS)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 30,
+  "first_row": [
+   "Activa",
+   [
+    "2,575,779",
+    "2,582,380",
+    "3,260,328",
+    "4,757,688",
+    "5,014,400"
+   ]
+  ]
+ },
+ "pat|2020|3457": {
+  "title": "Table 14 PROFIT AFTER TAX FOR NON-LIFE COMPANIES (2016 \u2013 2020) (GHS\u2019million)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 30,
+  "first_row": [
+   "Activa",
+   [
+    "3",
+    "3",
+    "5",
+    "5",
+    "5"
+   ]
+  ]
+ },
+ "pat|2024|2384": {
+  "title": "Table 21: Profit After Tax (2020 \u2013 2024) for Non-Life Insurers (GH\u00a2\u2019 million)",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 30,
+  "first_row": [
+   "Activa",
+   [
+    "5",
+    "10.2",
+    "8",
+    "13",
+    "5.55"
+   ]
+  ]
+ },
+ "chg_gwp_pct|2019|3543": {
+  "title": "TABLE 30: CHANGE IN GROSS WRITTEN PREMIUM (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "32",
+    "28",
+    "11",
+    "10",
+    "24"
+   ]
+  ]
+ },
+ "chg_gwp_pct|2020|4549": {
+  "title": "TABLE 38: CHANGE IN GROSS WRITTEN PREMIUM (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "28",
+    "11",
+    "10",
+    "24",
+    "30"
+   ]
+  ]
+ },
+ "chg_gwp_pct|2022|3354": {
+  "title": "Table 41: Change In Gross Premium Non Life",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "10",
+    "24",
+    "30",
+    "27",
+    "31"
+   ]
+  ]
+ },
+ "chg_nwp_pct|2019|3594": {
+  "title": "TABLE 31: CHANGE IN NET WRITTEN PREMIUM (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "43",
+    "41",
+    "12",
+    "15",
+    "11"
+   ]
+  ]
+ },
+ "chg_nwp_pct|2020|4597": {
+  "title": "TABLE 39: CHANGE IN NET WRITTEN PREMIUM (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "41",
+    "12",
+    "15",
+    "11",
+    "34"
+   ]
+  ]
+ },
+ "chg_nwp_pct|2022|3403": {
+  "title": "Table 42: Change in Net Written Premium (%)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "15",
+    "11",
+    "34",
+    "29",
+    "29"
+   ]
+  ]
+ },
+ "net_risk_ratio|2019|3649": {
+  "title": "TABLE 32: NET INSURANCE RISK RATIO (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "98",
+    "92",
+    "81",
+    "80",
+    "80"
+   ]
+  ]
+ },
+ "net_risk_ratio|2020|4649": {
+  "title": "TABLE 40: NET INSURANCE RISK RATIO (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "92",
+    "81",
+    "80",
+    "80",
+    "71"
+   ]
+  ]
+ },
+ "net_risk_ratio|2022|3455": {
+  "title": "Table 43: Net Insurance Risk Ratio (%)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "80",
+    "80",
+    "71",
+    "71",
+    "77"
+   ]
+  ]
+ },
+ "gross_risk_ratio|2019|3699": {
+  "title": "TABLE 33: GROSS INSURANCE RISK RATIO (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "159",
+    "142",
+    "121",
+    "125",
+    "138"
+   ]
+  ]
+ },
+ "gross_risk_ratio|2020|4697": {
+  "title": "TABLE 41: GROSS INSURANCE RISK RATIO (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "142",
+    "121",
+    "125",
+    "138",
+    "116"
+   ]
+  ]
+ },
+ "gross_risk_ratio|2022|3502": {
+  "title": "Table 44: Gross Insurance Risk",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "125",
+    "138",
+    "116",
+    "103",
+    "117"
+   ]
+  ]
+ },
+ "chg_cap_surplus|2019|3759": {
+  "title": "TABLE 34: Change in Capital and Surplus (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "48",
+    "45",
+    "32",
+    "23",
+    "13"
+   ]
+  ]
+ },
+ "chg_cap_surplus|2020|4752": {
+  "title": "TABLE 42: Change in Capital and Surplus (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "45",
+    "32",
+    "23",
+    "13",
+    "33"
+   ]
+  ]
+ },
+ "chg_cap_surplus|2022|3557": {
+  "title": "Table 45: Change in Capital Surplus",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "23",
+    "13",
+    "33",
+    "43",
+    "11"
+   ]
+  ]
+ },
+ "chg_cap_surplus|2024|3228": {
+  "title": "Table 41: Change in Capital and Surplus",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "33",
+    "43",
+    "11",
+    "23",
+    "27"
+   ]
+  ]
+ },
+ "claims_reserve_ratio|2019|3815": {
+  "title": "TABLE 35: Claims Reserve Ratio",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "36",
+    "32",
+    "40",
+    "52",
+    "39"
+   ]
+  ]
+ },
+ "claims_reserve_ratio|2020|4803": {
+  "title": "TABLE 43: Claims Reserve Ratio",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "32",
+    "40",
+    "52",
+    "39",
+    "39"
+   ]
+  ]
+ },
+ "claims_reserve_ratio|2022|3609": {
+  "title": "Table 46: Claims Reserve Ratio",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "52",
+    "39",
+    "39",
+    "27",
+    "32"
+   ]
+  ]
+ },
+ "retention|2019|3868": {
+  "title": "TABLE 36: Retention Ratio (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "66",
+    "68",
+    "71",
+    "70",
+    "67"
+   ]
+  ]
+ },
+ "retention|2020|4853": {
+  "title": "TABLE 44: Retention Ratio (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "68",
+    "71",
+    "70",
+    "67",
+    "68"
+   ]
+  ]
+ },
+ "retention|2022|3661": {
+  "title": "Table 47: Retention Ratio",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "70",
+    "67",
+    "68",
+    "71",
+    "68"
+   ]
+  ]
+ },
+ "retention|2024|3276": {
+  "title": "Table 42: Retention Ratio",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "68",
+    "71",
+    "68",
+    "69",
+    "68"
+   ]
+  ]
+ },
+ "inv_yield|2019|3919": {
+  "title": "TABLE 37: Investment Yield (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "16",
+    "16",
+    "13",
+    "10",
+    "11"
+   ]
+  ]
+ },
+ "inv_yield|2020|4902": {
+  "title": "TABLE 45: Investment Yield (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "16",
+    "13",
+    "10",
+    "11",
+    "7"
+   ]
+  ]
+ },
+ "inv_yield|2022|3706": {
+  "title": "Table 48: Investment Yield",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "10",
+    "11",
+    "7",
+    "8",
+    "11"
+   ]
+  ]
+ },
+ "inv_yield|2024|3320": {
+  "title": "Table 43: Investment Yield",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "7",
+    "8",
+    "11",
+    "12",
+    "11"
+   ]
+  ]
+ },
+ "roa|2019|3968": {
+  "title": "TABLE 38: Return on Asset Ratio (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "3",
+    "4",
+    "4",
+    "6",
+    "1"
+   ]
+  ]
+ },
+ "roa|2020|4949": {
+  "title": "TABLE 46: Return on Asset Ratio (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "4",
+    "4",
+    "6",
+    "1",
+    "1"
+   ]
+  ]
+ },
+ "roa|2022|3755": {
+  "title": "Table 49: Return on Asset Ratio (%)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "6",
+    "1",
+    "1",
+    "4",
+    "4"
+   ]
+  ]
+ },
+ "roa|2024|3364": {
+  "title": "Table 44: Return on Asset Ratio(%)",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "1",
+    "4",
+    "4",
+    "5",
+    "7"
+   ]
+  ]
+ },
+ "loss_ratio|2019|4029": {
+  "title": "TABLE 39: Claims Ratio (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "37",
+    "39",
+    "37",
+    "42",
+    "29"
+   ]
+  ]
+ },
+ "loss_ratio|2020|5007": {
+  "title": "TABLE 47: Claims Ratio (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "39",
+    "37",
+    "42",
+    "29",
+    "32"
+   ]
+  ]
+ },
+ "loss_ratio|2022|3811": {
+  "title": "Table 50: Claims Ratio",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "42",
+    "29",
+    "32",
+    "29",
+    "29"
+   ]
+  ]
+ },
+ "loss_ratio|2024|3413": {
+  "title": "Table:45: Claims Ratio",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "32",
+    "29",
+    "29",
+    "25",
+    "32"
+   ]
+  ]
+ },
+ "expense_ratio|2019|4084": {
+  "title": "TABLE 40: Expense Ratio (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "115",
+    "89",
+    "86",
+    "99",
+    "93"
+   ]
+  ]
+ },
+ "expense_ratio|2020|5059": {
+  "title": "TABLE 48: Expense Ratio (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "89",
+    "86",
+    "99",
+    "93",
+    "81"
+   ]
+  ]
+ },
+ "expense_ratio|2022|3865": {
+  "title": "Table 51: Expense Ratio (%)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "99",
+    "93",
+    "81",
+    "71",
+    "77"
+   ]
+  ]
+ },
+ "expense_ratio|2024|3461": {
+  "title": "Table 46: Expense Ratio (%)",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "81",
+    "71",
+    "77",
+    "80",
+    "73"
+   ]
+  ]
+ },
+ "combined_ratio|2019|4140": {
+  "title": "TABLE 41: Combined Ratio (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "137",
+    "133",
+    "124",
+    "142",
+    "123"
+   ]
+  ]
+ },
+ "combined_ratio|2020|5098": {
+  "title": "TABLE 48: Expense Ratio (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "133",
+    "124",
+    "142",
+    "123",
+    "113"
+   ]
+  ]
+ },
+ "combined_ratio|2022|3918": {
+  "title": "Table 52: Combined Ratio (%)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "142",
+    "123",
+    "113",
+    "101",
+    "108"
+   ]
+  ]
+ },
+ "combined_ratio|2024|3510": {
+  "title": "Table 47: Combined Ratio(%)",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "113",
+    "101",
+    "108",
+    "106",
+    "105"
+   ]
+  ]
+ },
+ "tech_reserve_cover|2019|4198": {
+  "title": "TABLE 42: Technical Reserve Cover (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "76",
+    "64",
+    "70",
+    "87",
+    "94"
+   ]
+  ]
+ },
+ "tech_reserve_cover|2020|5164": {
+  "title": "TABLE 50: Technical Reserve Cover (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "64",
+    "70",
+    "87",
+    "94",
+    "95"
+   ]
+  ]
+ },
+ "tech_reserve_cover|2022|3969": {
+  "title": "Table 53: Technical Reserve Cover",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "87",
+    "94",
+    "95",
+    "67",
+    "72"
+   ]
+  ]
+ },
+ "tech_reserve_cover|2024|3560": {
+  "title": "Table 48: Technical Reserve Cover",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "95",
+    "67",
+    "72",
+    "74",
+    "69"
+   ]
+  ]
+ },
+ "prop_inv_assets|2019|4248": {
+  "title": "TABLE 43: Proportion of Investment Assets (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "72",
+    "66",
+    "66",
+    "67",
+    "61"
+   ]
+  ]
+ },
+ "prop_inv_assets|2020|5212": {
+  "title": "TABLE 51: Proportion of Investment Assets (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "66",
+    "66",
+    "67",
+    "61",
+    "64"
+   ]
+  ]
+ },
+ "prop_inv_assets|2022|4016": {
+  "title": "Table 54: Proportion of Investment Assets (%)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "67",
+    "61",
+    "64",
+    "70",
+    "66"
+   ]
+  ]
+ },
+ "prop_inv_assets|2024|3608": {
+  "title": "Table 49: Proportion of Investment Assets (%)",
+  "years": [
+   2020,
+   2021,
+   2022,
+   2023,
+   2024
+  ],
+  "n_rows": 31,
+  "first_row": [
+   "Industry Average",
+   [
+    "64",
+    "70",
+    "66",
+    "60",
+    "65"
+   ]
+  ]
+ },
+ "roe|2019|4299": {
+  "title": "TABLE 44: Return on Equity (%)",
+  "years": [
+   2015,
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "6",
+    "6",
+    "9",
+    "12",
+    "0.22"
+   ]
+  ]
+ },
+ "roe|2020|5251": {
+  "title": "TABLE 51: Proportion of Investment Assets (%)",
+  "years": [
+   2016,
+   2017,
+   2018,
+   2019,
+   2020
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "6",
+    "9",
+    "12",
+    "0.22",
+    "8"
+   ]
+  ]
+ },
+ "roe|2022|4067": {
+  "title": "Table 55: Return on Equity (%)",
+  "years": [
+   2018,
+   2019,
+   2020,
+   2021,
+   2022
+  ],
+  "n_rows": 33,
+  "first_row": [
+   "Industry Average",
+   [
+    "12",
+    "0.22",
+    "8",
+    "9",
+    "8"
+   ]
+  ]
+ }
+}

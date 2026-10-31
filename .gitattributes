@@ -1,0 +1,2 @@
+# NIC extractions are checksum-verified (mixed line endings): store and check out byte-for-byte
+data/raw/nic_text/*.txt -text
