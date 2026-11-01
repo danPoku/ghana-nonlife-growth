@@ -133,3 +133,30 @@ Further amendments:
   the Q2 return add over what last year's audited accounts already show?). Q3 - Q2 for reference.
 - Outputs: `outputs/exp2_results.csv` (aggregate), `outputs/exp2_units.csv` (per-sheet units);
   insurer-level data in `outputs/confidential/`.
+
+## 4. Deviations and results (added AFTER analysis; sections 1-3 unchanged since commit 98b4e34)
+
+### Deviations from the pre-registration
+- **Exp 2, Q2 2022 sheet.** Its expense-ratio column is an exact copy of its claims-ratio column
+  (25 of 25 rows), so YTD CR would be 2 x claims ratio. Rule added: a sheet where >= 90% of rows have
+  expense ratio = claims ratio gets its ratios set to missing (only Q2 2022 qualifies). Nothing is
+  recomputed from amounts. Effect: the primary Exp 2 sample covers t = 2015-2021, not 2015-2022.
+- **Exp 1, bootstrap implementation.** The first run (pandas concat per resample) was stopped for speed
+  and replaced by index arrays. Same seed, same draw order, same rows: results are identical by
+  construction.
+
+### Exp 1 (primary target CR(t) > 110): MODERATE
+- Test sample 52 insurer-years (26 insurers), 17 red. Red share: training 60%, test 33%.
+- Continuous CR(t-1) AUC 0.803 [0.619, 0.940]. Composite (CR, ER, roa, inv_yield at t-1) 0.785
+  [0.595, 0.935]. Difference -0.018, paired 95% CI [-0.078, +0.057]: **the CI includes 0**.
+- Thresholds not stable: the CR(t-1) cut-off from the 2016-2017 window (129.0, n = 46) is 12 pp above
+  the 2016-2020 cut-off (117.0); all later windows are within 4.5 pp.
+- Binary rule CR(t-1) > 110 on the test years: flags 31%, hit rate 75%, catches 71% of red cases.
+- Lagged premium growth: test AUC 0.524 [0.336, 0.703], no warning value; it was not selected for
+  the composite.
+
+### Exp 2 (primary target audited CR(t) > 110): STRONG, with a caveat
+- Q2 YTD CR AUC 0.815 [0.740, 0.882], n 167 (100 red), 2015-2021. Q3 (reference) 0.860.
+- But Q2 YTD CR minus audited CR(t-1), paired rows (n 146): -0.073, 95% CI [-0.142, -0.003].
+  **The CI excludes 0: on the same rows, last year's audited CR ranks insurers better than the Q2
+  return does.**
