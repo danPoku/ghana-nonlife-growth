@@ -133,3 +133,29 @@ Interpretation rules (applied to B1/B2 on CR, using wild cluster bootstrap p-val
   For B1 vs B2 the LR and ER results are reported to show whether a same-year effect runs through
   claims or expenses.
 - Outputs: `outputs/gmm_results.csv`, `outputs/gmm_diagnostics.csv`, `outputs/bridge_results.csv`.
+
+## 4. Deviation and results (added AFTER analysis; sections 1-3 unchanged since commit 2c0df93)
+
+### Deviation (found before any model was run)
+- **Balanced subsample.** "Every col. 3 variable present in all 8 years 2015-2022" selects no insurer:
+  MSGR cannot exist in 2015 (the panel has no 2014 market shares). Used instead: outcome present in every
+  year 2015-2022 and every col. 3 regressor in every year 2016-2022. In difference GMM with L1.Y, 2015
+  only supplies the lagged outcome, so no usable row is lost. Result: 22 balanced insurers.
+
+### A (difference GMM): NOT REPLICATED (4 of 4 models passing diagnostics)
+| Sample | Spec | PGR (UP_GWP) | SE | p | Doubling premium (PGR +1.0) |
+|---|---|---|---|---|---|
+| thesis (28 insurers, 143 obs) | col. 2 | -4.94 | 10.57 | 0.64 | -4.9 pp of GWP |
+| thesis | col. 3 | -6.74 | 12.17 | 0.58 | -6.7 pp |
+| balanced (22 insurers, 132 obs) | col. 2 | +0.56 | 7.00 | 0.94 | +0.6 pp |
+| balanced | col. 3 | +0.90 | 9.37 | 0.92 | +0.9 pp |
+Akotey et al.: -0.022 (p = 0.015). AR(2) p 0.37-0.99, Hansen p 0.19-0.49 (df 1), 6-8 instruments.
+Secondary A-yd (year dummies, not counted): PGR +1.56 (p 0.95) thesis; -11.84 (p 0.77) balanced, whose
+Hansen p 0.024 fails diagnostics. MSGR is never significant (p >= 0.29).
+
+### B (timing bridge): MIXED: authors decide
+- B sample 175 insurer-years, 29 insurers, 2016-2022. B2 reproduces the thesis closely (CR +0.064 vs M1 +0.055).
+- Same-year growth -> CR (B1): **-0.275 pp per pp, WCB p 0.001**: higher same-year growth goes with a
+  BETTER combined ratio, the opposite direction to the TIMING rule. Lagged growth (B2): +0.064, WCB p 0.60.
+- Same-year effect splits about evenly: LR -0.115 (WCB p 0.059), ER -0.121 (WCB p 0.015). Raw: LR -0.113
+  (p 0.038), ER -0.149 (p 0.021). B3 (both together) gives the same picture.
