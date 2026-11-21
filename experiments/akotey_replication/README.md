@@ -166,3 +166,9 @@ re-run with the same seed and draw order; coefficients and clustered SEs are unc
 B1 same-year growth -> CR 0.001 -> 0.003; B2 lagged growth -> CR 0.60 -> 0.58; B1 -> LR 0.059 -> 0.075;
 B1 -> ER 0.015 -> 0.015; raw B1 -> LR 0.038 -> 0.058, raw B1 -> ER 0.021 -> 0.016. **The B verdict is unchanged:
 MIXED: authors decide.** Part A (difference GMM) does not use the bootstrap.
+
+### Update after the D14 addendum (Part 3 of the v2 revision, 21 Nov 2026; added after analysis)
+Each bootstrap sample now re-absorbs the insurer and year effects (docs/methodology_decisions.md, D14 addendum).
+Coefficients and clustered SEs unchanged. B1 same-year growth -> CR 0.003 -> 0.004; B2 lagged growth -> CR 0.58 -> 0.59;
+B1 -> LR 0.075 -> 0.089; B1 -> ER 0.015 -> 0.020; raw B1 -> LR 0.058 -> 0.063, raw B1 -> ER 0.016 -> 0.022.
+**The B verdict is unchanged: MIXED: authors decide.**

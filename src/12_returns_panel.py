@@ -13,13 +13,17 @@ sheet and column (median of |values| < 3 -> fraction, x 100). Sheets are year-to
 increments (Qq - Qq-1 of the same insurer-year; Q1 = YTD).
 
 Derived, IFRS 4 years 2013-2023 (percent; codebook):
-  NEP     = net earned premium column (2021+); else implied NEP = claims / (workbook claims ratio / 100);
-            not recoverable if claims <= 0 or the claims ratio is missing or <= 0
-  LR_c = claims / NEP; ER_c = (management + commission) / NEP; CR_c = LR_c + ER_c
-  ER_gross = (management + commission) / GWP; ER_netric = (management + commission - RIC) / NEP (missing if RIC blank:
-  blank RIC is MISSING, never zero); COMM_r = commission / NEP; MGT_r = management / NEP; RET_c = NWP / GWP;
-  ln_assets = ln(total assets) if > 0; TP_r = technical provisions / NEP (2021+); motor_share = motor GWP / GWP (2021+)
-  Before 2021, LR_c equals the workbook's own claims ratio BY CONSTRUCTION (NEP is implied from it).
+  PRIMARY denominator NEP_RIC = NEP + RIC (NIC's own basis; the workbook claims ratio is over NEP + RIC, A17):
+            before 2021 implied = claims / (workbook claims ratio / 100), used as-is; from 2021 NEP column + RIC.
+            Not recoverable if claims <= 0 or the claims ratio is missing (before 2021), or NEP or RIC blank (2021+)
+  LR_c = claims / NEP_RIC; ER_c = (management + commission) / NEP_RIC; CR_c = LR_c + ER_c;
+  COMM_r = commission / NEP_RIC; MGT_r = management / NEP_RIC; TP_r = technical provisions / NEP_RIC (2021+)
+  SECONDARY, where RIC is present: NEP_true = implied - RIC (before 2021) or the NEP column (2021+);
+  LR_tn, ER_tn, CR_tn = the same ratios over NEP_true; ER_netric = (management + commission - RIC) / NEP_true
+  (blank RIC is MISSING, never zero)
+  ER_gross = (management + commission) / GWP; RET_c = NWP / GWP; ln_assets = ln(total assets) if > 0;
+  motor_share = motor GWP / GWP (2021-23)
+  Before 2021, LR_c equals the workbook's own claims ratio BY CONSTRUCTION (the denominator is implied from it).
 IFRS 17 (2024+): extracted into i17_* columns only, never mixed with 2013-2023.
 
 Gaps (A18): Q2 2022 expense-ratio column is a copy of the claims ratio (detected: >= 90% of rows equal), so it is
@@ -96,9 +100,9 @@ FLOWS17 = ['i17_revenue', 'i17_service_expenses', 'i17_result_gross', 'i17_servi
            'i17_motor_other']
 STOCKS = ['tp', 'total_assets', 'i17_total_assets']
 MONEY = FLOWS4 + FLOWS17 + STOCKS                                   # 'figures' = any of these present
-# Rows held out pending a mapping decision (reported, never silently mapped)
-HOLD_OUT = {('regency insurance ghana limited', 2016, 1):
-            'Regency listed separately from NEM in Q1 2016; step 09 alias covers Regency only to 2015'}
+# Rows held out pending a mapping decision (reported, never silently mapped). Regency Q1 2016 is now mapped to
+# REGENCYNEM by the alias in src/returns_io.py (authors' decision after Part 2 review), so none is held out.
+HOLD_OUT = {}
 
 lookup = {}
 for era, hm in (('ifrs4', HMAP4), ('ifrs17', HMAP17)):
@@ -187,20 +191,31 @@ i4 = Q.era == 'ifrs4'
 pos = lambda s: s.where(s > 0)
 impl = Q.claims / (Q.LR_wb / 100)
 ok_impl = (Q.claims > 0) & (Q.LR_wb > 0)
-Q['NEP'] = np.where(i4 & Q.nep.notna(), Q.nep, np.where(i4 & ok_impl, impl, np.nan))
-Q['nep_source'] = np.select([~i4, Q.nep.notna(), ok_impl], ['IFRS 17 (not derived)', 'column', 'implied from claims ratio'],
-                            default='not recoverable')
-NEP, exp = pos(Q.NEP), Q.mgmt + Q.comm
-Q['LR_c'] = 100 * Q.claims / NEP
-Q['ER_c'] = 100 * exp / NEP
+pre21 = i4 & (Q.year < 2021)
+# Denominators (authors' decision after Part 2 review, A17). PRIMARY = NEP + RIC, NIC's own basis (the workbook claims
+# ratio is over NEP + RIC; comparable with Tier 1): before 2021 the implied value claims / (claims ratio / 100) as-is;
+# from 2021 the NEP column plus RIC (missing if RIC is blank). SECONDARY, where RIC is present: true NEP = implied - RIC
+# before 2021, the NEP column from 2021.
+Q['NEP_RIC'] = np.where(pre21 & ok_impl, impl, np.where(i4 & ~pre21, Q.nep + Q.ric, np.nan))
+Q['nep_source'] = np.select([~i4, pre21 & ok_impl, pre21, Q.nep.isna(), Q.ric.isna()],
+                            ['IFRS 17 (not derived)', 'implied from claims ratio (= NEP + RIC)',
+                             'not recoverable (claims <= 0 or claims ratio missing)', 'not recoverable (NEP column blank)',
+                             'not recoverable (RIC blank)'], default='NEP column + RIC')
+Q['NEP_true'] = np.where(pre21, Q.NEP_RIC - Q.ric, np.where(i4, Q.nep, np.nan))   # NaN where RIC blank before 2021
+D, Nt, exp = pos(Q.NEP_RIC), pos(Q.NEP_true), Q.mgmt + Q.comm
+Q['LR_c'] = 100 * Q.claims / D                                      # primary ratios: NEP + RIC basis
+Q['ER_c'] = 100 * exp / D
 Q['CR_c'] = Q.LR_c + Q.ER_c
+Q['COMM_r'] = 100 * Q.comm / D
+Q['MGT_r'] = 100 * Q.mgmt / D
+Q['TP_r'] = 100 * Q.tp / D
+Q['LR_tn'] = 100 * Q.claims / Nt                                    # secondary: true-NEP basis
+Q['ER_tn'] = 100 * exp / Nt
+Q['CR_tn'] = Q.LR_tn + Q.ER_tn
+Q['ER_netric'] = 100 * (exp - Q.ric) / Nt                           # NaN where RIC is blank (never zero-filled)
 Q['ER_gross'] = 100 * exp / pos(Q.gwp)
-Q['ER_netric'] = 100 * (exp - Q.ric) / NEP                          # NaN where RIC is blank (never zero-filled)
-Q['COMM_r'] = 100 * Q.comm / NEP
-Q['MGT_r'] = 100 * Q.mgmt / NEP
 Q['RET_c'] = 100 * Q.nwp / pos(Q.gwp)
 Q['ln_assets'] = np.log(pos(Q.total_assets))
-Q['TP_r'] = 100 * Q.tp / NEP
 Q['motor_share'] = 100 * Q.motor_gwp / pos(Q.gwp)
 Q['i17_motor_gwp'] = Q[['i17_motor_comp', 'i17_motor_tp', 'i17_motor_tpft', 'i17_motor_other']].sum(axis=1, min_count=1)
 Q['i17_CR_wb'] = Q.i17_LR_wb + Q.i17_ER_wb
@@ -229,7 +244,8 @@ A['concordance'] = np.select(
     ['not checked: no audited GWP (2013-14)', 'not checked: IFRS 17', 'no Q4 row', 'Q4 row without figures',
      'not checked: no audited GWP', 'pass'], default='fail')
 passed = A.concordance.eq('pass')
-COMP = ['NEP', 'LR_c', 'ER_c', 'CR_c', 'ER_gross', 'ER_netric', 'COMM_r', 'MGT_r', 'RET_c', 'ln_assets', 'TP_r',
+COMP = ['NEP_RIC', 'NEP_true', 'LR_c', 'ER_c', 'CR_c', 'LR_tn', 'ER_tn', 'CR_tn', 'ER_gross', 'ER_netric', 'COMM_r',
+        'MGT_r', 'RET_c', 'ln_assets', 'TP_r',
         'motor_share', 'total_assets']
 chk = A.year.between(2015, 2023)
 A.loc[chk & ~passed, COMP] = np.nan                                  # failing / missing Q4: components stay missing
@@ -256,9 +272,10 @@ NS.insert(0, 'insurer_years', uni.groupby('year').size())
 NS.reset_index().to_csv(TABLES / 'returns_nonsubmission.csv', index=False)
 
 keep = ['insurer_id', 'year', 'source_name', 'in_tier1', 'has_q4_row', 'has_figures', 'flag_copy_forward', 'merger_year',
-        'concordance', 'gwp_rel_diff', 'annual_source', 'n_quarters_no_figures', 'gwp', 'gwp_t1', 'gwp_a', 'nwp', 'NEP',
-        'nep_source', 'claims', 'gross_claims', 'mgmt', 'comm', 'ric', 'tp', 'total_assets', 'motor_gwp',
-        'LR_c', 'ER_c', 'CR_c', 'ER_gross', 'ER_netric', 'COMM_r', 'MGT_r', 'RET_c', 'ln_assets', 'TP_r', 'motor_share',
+        'concordance', 'gwp_rel_diff', 'annual_source', 'n_quarters_no_figures', 'gwp', 'gwp_t1', 'gwp_a', 'nwp', 'NEP_RIC',
+        'NEP_true', 'nep_source', 'claims', 'gross_claims', 'mgmt', 'comm', 'ric', 'tp', 'total_assets', 'motor_gwp',
+        'LR_c', 'ER_c', 'CR_c', 'LR_tn', 'ER_tn', 'CR_tn', 'ER_gross', 'ER_netric', 'COMM_r', 'MGT_r', 'RET_c', 'ln_assets',
+        'TP_r', 'motor_share',
         'LR_a', 'ER_a', 'CR_a', 'RET_a', 'LR_wb', 'ER_wb', 'CR_wb', 'LR_t1', 'ER_t1', 'CR_t1', 'CR_nic_t1', 'RET_t1',
         'cr_nic_mismatch_t1'] + [c for c in Q.columns if c.startswith('i17_') and not c.endswith('_inc')]
 A = A[keep].sort_values(['insurer_id', 'year']).reset_index(drop=True)

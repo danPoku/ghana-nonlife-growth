@@ -9,7 +9,9 @@ from names import canon
 
 HDR_NAME = ('company', 'non-life insurer', 'non life insurers')
 ALIASES = [(r'^gn insurance', 'BEDROCK', None), (r'^equity assurance', 'SUNU', None),
-           (r'^regency insurance', 'REGENCYNEM', 2015)]          # (pattern, id, last year valid)
+           (r'^regency insurance', 'REGENCYNEM', 2016)]          # (pattern, id, last year valid)
+# Regency is the continuing company of RegencyNem; it is listed under the old name until Q1 2016 (authors' decision
+# after the v2 Part 2 review; previously 2015). Step 09 reads only Q3/Q4 sheets, where the old name does not occur in 2016.
 EXCLUDE = [r'^nem insurance', r'^industrial\s*(&|and)\s*general']  # not in the Tier 1 panel
 SHEET = re.compile(r'^\s*q\s*([1-4])\s*,?\s*(\d{4})\s*$', re.I)      # 'Q4, 2015', 'Q4 2020', 'Q2,2018', 'Q4,2014'
 

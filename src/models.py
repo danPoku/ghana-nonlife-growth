@@ -21,7 +21,8 @@ def fe(df,y,X,cov='clustered',time=True):
             cov_type='clustered',cluster_entity=True,count_effects=False)
         X=[c for c in r.params.index if not c.startswith('_yr')]
         return SimpleNamespace(params=r.params[X],std_errors=r.std_errors[X],tstats=r.tstats[X],pvalues=r.pvalues[X],
-                               nobs=r.nobs,rsquared_within=m.fit().rsquared_within)
+                               nobs=r.nobs,rsquared_within=m.fit().rsquared_within,cov=r.cov.loc[X,X],
+                               n_clusters=d.index.get_level_values(0).nunique())
     if cov=='dk': return m.fit(cov_type='kernel',kernel='bartlett',bandwidth=2)
     return m.fit()
 
@@ -31,15 +32,30 @@ def twdm(df,v):
     Kept for the descriptive within-correlation in step 04."""
     x=df[v]-df.groupby('insurer_id')[v].transform('mean')-df.groupby('year')[v].transform('mean')+df[v].mean(); return x
 
+def dummies(df):
+    """Full set of insurer dummies and year dummies (first year dropped), as a matrix."""
+    return pd.concat([pd.get_dummies(df.insurer_id,dtype=float),
+                      pd.get_dummies(df.year,prefix='_yr',drop_first=True,dtype=float)],axis=1).to_numpy()
+
+def absorb(Z,M):
+    """Residuals of M (vector or matrix) on Z by least squares."""
+    return M-Z@np.linalg.lstsq(Z,M,rcond=None)[0]
+
 def within(df,cols):
     """Exact two-way within transformation (Frisch-Waugh-Lovell): residuals of each column on a full set of insurer
     dummies and year dummies (first year dropped), by least squares. Valid in unbalanced panels (D14)."""
-    Z=pd.concat([pd.get_dummies(df.insurer_id,dtype=float),
-                 pd.get_dummies(df.year,prefix='_yr',drop_first=True,dtype=float)],axis=1).to_numpy()
-    M=df[cols].to_numpy(float)
-    return M-Z@np.linalg.lstsq(Z,M,rcond=None)[0]
+    return absorb(dummies(df),df[cols].to_numpy(float))
 
-def wcb(df,y,X,var='g_L1_w',B=1999,seed=1):
+def wald(b,V,R,G,r=None):
+    """Cluster-robust Wald test of R b = r with (b, V) from models.fe (D12 covariance). Returns (F, q, df2, p),
+    F = W / q referred to F(q, G - 1), G = number of insurer clusters."""
+    from scipy import stats
+    R=np.atleast_2d(np.asarray(R,float)); b=np.asarray(b,float); V=np.asarray(V,float)
+    dv=R@b-(np.zeros(R.shape[0]) if r is None else np.asarray(r,float))
+    q=R.shape[0]; F=float(dv@np.linalg.solve(R@V@R.T,dv))/q
+    return F,q,G-1,float(1-stats.f.cdf(F,q,G-1))
+
+def wcb(df,y,X,var='g_L1_w',B=1999,seed=1,draws=0):
     """Restricted (null-imposed) wild cluster bootstrap, Rademacher weights, one sign per insurer.
 
     D14: y and every regressor are first partialled on insurer and year dummies by OLS (`within`), so the original
@@ -48,9 +64,14 @@ def wcb(df,y,X,var='g_L1_w',B=1999,seed=1):
     no G/(G-1) factor, as linearmodels with count_effects=False and explicit year dummies), so t0 equals models.fe's t
     (asserted in 07); a constant scale does not change the p-value. Weights are drawn in the same order as before
     (one draw of G signs per replication, insurers sorted), so the change from D14 reflects the estimator only.
-    Returns (t0, p). B=0 returns (t0, nan)."""
+    D14 addendum (Part 3): every bootstrap outcome fit + u*w is re-absorbed on the insurer and year dummies before its
+    t-statistic is computed, as a two-way FE re-estimation of the bootstrap sample does (sign flips are constant within
+    insurer, so u*w is not orthogonal to the YEAR dummies). Bootstrap coefficients were already exact; bootstrap
+    residuals, and so bootstrap t, now are too (07 checks them against models.fe re-run on bootstrap samples).
+    Returns (t0, p). B=0 returns (t0, nan). draws=k also returns the first k bootstrap t, the bootstrap outcomes on the
+    original scale (restricted FE fit + u*w) and the estimation rows, for that check."""
     d=df.dropna(subset=[y]+X).reset_index(drop=True)
-    W=within(d,[y]+X); yv,Xv=W[:,0],W[:,1:]
+    Z=dummies(d); W=absorb(Z,d[[y]+X].to_numpy(float)); yv,Xv=W[:,0],W[:,1:]
     N,k=Xv.shape; scale=N/(N-k-(d.year.nunique()-1))
     _,cl=np.unique(d.insurer_id.values,return_inverse=True); G=cl.max()+1
     j=X.index(var); XtXi=np.linalg.inv(Xv.T@Xv); h=Xv@XtXi[:,j]   # b_j = h'y; its cluster score is sum_g h_g'u_g
@@ -62,5 +83,8 @@ def wcb(df,y,X,var='g_L1_w',B=1999,seed=1):
     Xr=np.delete(Xv,j,axis=1)
     fit=Xr@np.linalg.lstsq(Xr,yv,rcond=None)[0] if Xr.shape[1] else np.zeros(N); u=yv-fit
     rng=np.random.default_rng(seed); Wt=np.stack([rng.choice([-1,1],G) for _ in range(B)],axis=1)   # G x B
-    ts=tstats(fit[:,None]+u[:,None]*Wt[cl,:])
-    return t0, float(np.mean(np.abs(ts)>=abs(t0)))
+    ts=tstats(absorb(Z,fit[:,None]+u[:,None]*Wt[cl,:]))            # FE re-absorbed in every bootstrap sample
+    p=float(np.mean(np.abs(ts)>=abs(t0)))
+    if draws:
+        return t0, p, ts[:draws], (d[y].to_numpy(float)-u)[:,None]+u[:,None]*Wt[cl,:draws], d
+    return t0, p

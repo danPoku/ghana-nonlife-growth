@@ -10,7 +10,7 @@ unreliable with T=7 and must not be used as headline evidence.
 from scipy import stats
 import statsmodels.api as sm
 from config import PROCESSED, TABLES, INTERIM
-from models import fe, twdm, wcb   # shared with steps 09 and 10 (D12 SE convention)
+from models import fe, within, wcb   # shared with steps 09 and 10 (D12 SE convention)
 P=pd.read_csv(PROCESSED/'panel_master.csv')
 R={}
 # ---------- industry trends (all years) ----------
@@ -74,7 +74,8 @@ rows.append(tidy(fe(base.assign(CRn=wins(base.CR_nic)),'CRn',specs['M1_linear'])
 T=pd.concat(rows); T.index.name='term'; T.reset_index().to_csv(TABLES/'regressions.csv',index=False)
 # ---------- collinearity g vs d_ms after TWFE demeaning ----------
 cc=base.dropna(subset=['d_ms_L1_w'])
-R['within_corr_g_dms']=float(np.corrcoef(twdm(cc,'g_L1_w'),twdm(cc,'d_ms_L1_w'))[0,1])
+cc=cc.reset_index(drop=True); Wc=within(cc,['g_L1_w','d_ms_L1_w'])   # exact two-way within (D14; was twdm: 0.601)
+R['within_corr_g_dms']=float(np.corrcoef(Wc[:,0],Wc[:,1])[0,1])
 # ---------- diagnostics on M1 for each Y ----------
 diag={}
 for y in Ys:
@@ -171,6 +172,10 @@ for y in Ys:
 R['mde']=mde
 json.dump(R,open(TABLES/'results_summary.json','w'),indent=1,default=str)
 print(f"Estimation sample: {R['sample']['n']} obs, {R['sample']['insurers']} insurers. Results in outputs/tables.")
+
+# ---------- v2 main models (methodology revision, Part 3): src/models_v2.py, skipped without the NIC workbook ----------
+import models_v2
+models_v2.run()
 
 # ====================================================================================================
 # Gross-basis robustness (supervisor comment: ER over NET earned premium may be inflated for low-retention

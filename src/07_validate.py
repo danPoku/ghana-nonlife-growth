@@ -50,7 +50,9 @@ mrg = P.set_index(['insurer_id', 'year']).reindex([(m['insurer_id'], m['year']) 
 check(mrg.g.isna().all() and len(mrg) == len(MERGERS),
       f"g missing in every merger year ({', '.join(f'{i} {y}' for i, y in mrg.index)})")
 
-# 4. Headline results pinned from the first validated run
+# 4. Headline results pinned from the first validated run. Two independent sets: "v1 (public, Tier 1 only)" here,
+#    checked on every run; "v2 (thesis, requires NIC workbook)" in section 9, checked only when the workbook is present.
+V1 = 'v1 (public, Tier 1 only)'
 def coef(model, term):
     r = T[(T.model == model) & (T.term == term)]
     return float(r.coef.iloc[0]), float(r.se.iloc[0])
@@ -68,14 +70,14 @@ pins = {('LR_w|M1_linear|cluster', 'g_L1_w'): (0.0261, 0.0523),
 for (m, t), (b0, se0) in pins.items():
     b, se = coef(m, t)
     check(abs(b - b0) < 1e-3 * max(1, abs(b0)) and abs(se - se0) < 1e-3 * max(1, se0),
-          f"pinned result {m} {t}: coef {b:.4f} (expected {b0}), se {se:.4f} (expected {se0})")
+          f"{V1} pinned result {m} {t}: coef {b:.4f} (expected {b0}), se {se:.4f} (expected {se0})")
 # The shared helper used by step 10 (leave-one-out) reproduces the pins on the full estimation sample.
 # (07 runs before 10, so it refits with models.fe directly; step 10 also asserts its full sample equals 04.)
 X1 = ['g_L1_w', 'RET', 'ln_gwp_L1', 'LEV_net_L1_w']
 fits = {y: fe(E.dropna(subset=[y] + X1), y, X1) for y in ('LR_w', 'ER_w', 'CR_w')}
 ok = all(abs(fits[m.split('|')[0]].params[t] - b0) < 1e-3 * max(1, abs(b0)) and
          abs(fits[m.split('|')[0]].std_errors[t] - se0) < 1e-3 * max(1, se0) for (m, t), (b0, se0) in pins.items())
-check(ok, "models.fe (step 10 helper) reproduces all four pinned results on the full estimation sample")
+check(ok, f"{V1}: models.fe (step 10 helper) reproduces all four pinned results on the full estimation sample")
 # D14: the wild cluster bootstrap's original t must be the two-way FE t (exact within-transformation), every M1 term
 dt = max(abs(wcb(E, y, X1, var=v, B=0)[0] - fits[y].tstats[v]) for y in fits for v in X1)
 check(dt < 1e-8, f"models.wcb original t equals models.fe t for all {len(fits) * len(X1)} M1 terms (max |diff| {dt:.1e})")
@@ -117,7 +119,7 @@ skips = []
 RP = CONFIDENTIAL / 'returns_panel.csv'
 if QUARTERLY_FILE.exists() and RP.exists():
     R = pd.read_csv(RP, float_precision='round_trip')
-    pas = R[(R.concordance == 'pass') & R.year.between(2015, 2023) & (R.nep_source != 'not recoverable')
+    pas = R[(R.concordance == 'pass') & R.year.between(2015, 2023) & ~R.nep_source.str.startswith('not recoverable', na=False)
             & R[['claims', 'mgmt', 'comm']].notna().all(axis=1)]
     filled = R[R.annual_source == 'filled from annual']     # Q4 failed or missing (not 'components incomplete')
     ok = pas[['LR_c', 'ER_c', 'CR_c']].notna().all().all() and filled[['LR_c', 'ER_c', 'ln_assets']].isna().all().all() \
@@ -126,9 +128,38 @@ if QUARTERLY_FILE.exists() and RP.exists():
               f"recoverable NEP; components missing in all {len(filled)} rows filled from annual; LR_a, ER_a, CR_a for every Tier 1 row")
     nb = int((R.CR_c.notna() & (R.CR_c != R.LR_c + R.ER_c)).sum() + (R.CR_a.notna() & (R.CR_a != R.LR_a + R.ER_a)).sum())
     check(nb == 0, f"CR_c == LR_c + ER_c and CR_a == LR_a + ER_a exactly in the returns panel ({nb} rows differ)")
-    # Concordance counts: to be pinned after the authors' review of Part 2 (v2).
+    # Concordance counts pinned after the authors' review of Part 2 (v2; approved): 2015-2023, 238 Tier 1 insurer-years
+    t = pd.read_csv(TABLES / 'returns_concordance.csv').astype({'year': str}).set_index('year').loc['2015-2023']
+    got = (int(t.concordance_pass), int(t.concordance_fail), int(t.no_q4_row), int(t.copy_forward_q4))
+    check(got == (234, 3, 1, 2), f"returns concordance 2015-23: pass / fail / no Q4 row / Q4 copy-forward = {got} (pinned 234, 3, 1, 2)")
+    # 9. v2 models (Part 3): additive winsorising, Mundlak = FE, exact bootstrap
+    E2 = pd.read_csv(CONFIDENTIAL / 'estimation_sample_v2.csv', float_precision='round_trip')
+    nb2 = int((E2.CR_w != E2.LR_w + E2.ER_w).sum())
+    check(nb2 == 0, f"v2 additive winsorising: CR_w == LR_w + ER_w exactly in all {len(E2)} rows ({nb2} differ)")
+    cre = pd.read_csv(TABLES / 'cre_mundlak_v2.csv')
+    check(cre.max_abs_diff_within_vs_fe.max() < 1e-8,
+          f"two-way Mundlak within coefficients equal models.fe for LR, ER, CR (max |diff| {cre.max_abs_diff_within_vs_fe.max():.1e})")
+    # v2 headline pins (approved by the authors after the Part 3 review, 21 Nov 2026).
+    # v2 methodology: assets as size, single growth measure, corrected 2015-16 ER, additive winsorising.
+    # (Primary outcomes are the component-based ratios on the NEP + RIC basis; M1 = g_L1_w + RET + ln_assets_L1 + LEV_net_L1_w.)
+    V2 = 'v2 (thesis, requires NIC workbook)'
+    MV = pd.read_csv(TABLES / 'main_models_v2.csv')
+    pins2 = {('LR_w', 'g_L1_w'): (0.0201, 0.0544), ('ER_w', 'g_L1_w'): (-0.0039, 0.0453),
+             ('CR_w', 'g_L1_w'): (0.0163, 0.0908), ('ER_w', 'ln_assets_L1'): (3.5081, 10.7459)}
+    for (y, t), (b0, se0) in pins2.items():
+        r = MV[(MV.block == 'main') & (MV.model == 'M1') & (MV.outcome == y) & (MV.term == t)].iloc[0]
+        check(abs(r.coef - b0) < 1e-3 * max(1, abs(b0)) and abs(r.se - se0) < 1e-3 * max(1, se0),
+              f"{V2} pinned result M1 {y} {t}: coef {r.coef:.4f} (expected {b0}), se {r.se:.4f} (expected {se0})")
+    check(len(E2) == 171 and E2.insurer_id.nunique() == 28,
+          f"{V2} estimation sample: {len(E2)} insurer-years, {E2.insurer_id.nunique()} insurers (pinned 171, 28)")
 else:
-    skips.append("SKIP returns-panel checks (NIC quarterly returns workbook absent: v2 not reproducible, v1 only)")
+    skips.append("SKIP returns-panel and v2-model checks (NIC quarterly returns workbook absent: v2 not reproducible, v1 only)")
+# D14 addendum: bootstrap t-statistics equal models.fe re-estimated on the bootstrap samples (5 draws, M1 CR and ER size)
+mx = 0.0
+for y, v in [('CR_w', 'g_L1_w'), ('ER_w', 'ln_gwp_L1')]:
+    _, _, ts, Ys, d = wcb(E, y, X1, var=v, B=999, draws=5)
+    mx = max(mx, max(abs(fe(d.assign(**{y: Ys[:, k]}), y, X1).tstats[v] - ts[k]) for k in range(5)))
+check(mx < 1e-8, f"models.wcb bootstrap t equal models.fe on bootstrap samples (5 draws x 2 terms, max |diff| {mx:.1e})")
 
 print("\n".join(notes + fails + skips))
 print(f"\n{len(notes)} passed, {len(fails)} failed")

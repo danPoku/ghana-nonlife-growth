@@ -59,3 +59,47 @@ ax.set_title('Figure 5. Non-life market GWP growth (excl. GOGIP): nominal vs rea
 f.text(.01,.01,f"Deflator: annual-average CPI inflation, World Bank WDI FP.CPI.TOTL.ZG (orig. GSS), retrieved {P.cpi_avg_source.str.extract(r'retrieved (\d{4})')[0].dropna().iloc[0]}.",fontsize=7)
 f.tight_layout(rect=(0,.04,1,1)); f.savefig(FIGURES/'F5_nominal_real_growth.png',dpi=200)
 
+
+# ---------- v2 figures (methodology revision, Part 3). Built from aggregate v2 tables; skipped if they are absent ----------
+# Palette: the thesis blue/orange pair, validated (lightness, chroma, CVD separation dE 22, contrast >= 3:1); identity is
+# also carried by line style / marker and direct labels, not colour alone.
+BLUE, ORANGE, INK, MUTED = '#2e75b6', '#c55a11', '#333333', '#666666'
+GQ2, IT2 = TABLES/'growth_quartiles_v2.csv', TABLES/'industry_trends_v2.csv'
+if GQ2.exists() and IT2.exists():
+    # F3 (v2): growth quartiles; legend outside the plotting area so it cannot overlap the CR annotations
+    G2=pd.read_csv(GQ2); xx=np.arange(len(G2)); top=max(G2.LR.max(),G2.ER.max())
+    f,ax=plt.subplots(figsize=(7.2,4.4))
+    ax.bar(xx-.21,G2.LR,.4,label='Loss ratio',color=BLUE); ax.bar(xx+.21,G2.ER,.4,label='Expense ratio',color=ORANGE)
+    for i,(c,s) in enumerate(zip(G2.CR,G2.share_CR_gt100)):
+        ax.text(i,top+5,f'CR {c:.0f}%\n{s:.0f}% loss-making',ha='center',va='bottom',fontsize=8,color=INK)
+    ax.set_xticks(xx); ax.set_xticklabels([f"{q}\n(median {g:+.0f} pp)" for q,g in zip(G2.gq,G2.g_excess_L1)],fontsize=8)
+    ax.set_ylim(0,top+30); ax.set_ylabel('Ratio in year t (% of NEP + RIC)'); ax.grid(axis='y',color='#e5e5e5',lw=.6); ax.set_axisbelow(True)
+    ax.legend(frameon=False,fontsize=8,ncol=2,loc='lower right',bbox_to_anchor=(1,1.0))
+    f.suptitle('Figure 3 (v2). Underwriting ratios by quartile of prior-year excess premium growth',x=.01,ha='left',fontsize=10)
+    f.text(.01,.01,'v2 estimation sample 2016-2022 (171 insurer-years), start-up years excluded; component-based ratios, LR and ER\n'
+           'winsorised 1/99, CR = LR + ER. Excess growth = insurer growth (single exact-GWP measure) minus the year median.\n'
+           'Source: NIC quarterly returns (insurers\' unaudited submissions); NIC Annual Reports; authors\' computation.',fontsize=7,color=MUTED)
+    f.tight_layout(rect=(0,.10,1,.95)); f.savefig(FIGURES/'F3_growth_quartiles_v2.png',dpi=200)
+    # RQ1 (v2): component-based vs published combined ratio, NWP-weighted, with the 2019-20 gap annotated
+    S=pd.read_csv(IT2); f,ax=plt.subplots(figsize=(8.2,4.4))
+    ax.axvspan(2022.5,2023.5,color='#f0f0f0'); ax.text(2023,86,'2023: published\nis IFRS 17',ha='center',fontsize=7,color=MUTED)
+    ax.plot(S.year,S.CR_component,'o-',color=BLUE,lw=2,ms=6,label='Component-based (returns, NEP + RIC basis; v2 primary)')
+    ax.plot(S.year,S.CR_published,'s--',color=ORANGE,lw=2,ms=6,label='Published (NIC annual reports)')
+    ax.axhline(100,color=INK,lw=.8)
+    for yr in (2019,2020):
+        r=S[S.year==yr].iloc[0]
+        ax.annotate('',xy=(yr,r.CR_published+1),xytext=(yr,r.CR_component-1),arrowprops=dict(arrowstyle='<->',color=INK,lw=.9))
+        ax.text(yr+.08,(r.CR_component+r.CR_published)/2,f'{r.CR_component-r.CR_published:+.0f} pp',fontsize=8,color=INK,va='center')
+    ax.text(2020.7,151,'2019: Q4 returns differ from audited figures (A18)\n2020: published ER omits commission (A20)',
+            ha='center',va='center',fontsize=7.5,color=INK)
+    r16=S[S.year==2016].iloc[0]   # direct labels where the two lines are well apart
+    ax.text(2016.12,r16.CR_component+3.5,'component',ha='left',color=INK,fontsize=8)
+    ax.text(2016.12,r16.CR_published-7,'published',ha='left',color=INK,fontsize=8)
+    ax.set_xticks(S.year); ax.set_ylim(80,160); ax.set_ylabel('Combined ratio, NWP-weighted (%)'); ax.grid(axis='y',color='#e5e5e5',lw=.6); ax.set_axisbelow(True)
+    ax.legend(frameon=False,fontsize=8,loc='lower left')
+    f.suptitle('Figure 1 (v2). Non-life combined ratio 2015-2023: component-based vs published',x=.01,ha='left',fontsize=10)
+    f.text(.01,.01,'All insurers incl. start-ups; weights = NWP. Component-based: returns where Q4 GWP passes concordance, published values '
+           'otherwise.\nSource: NIC quarterly returns (insurers\' unaudited submissions); NIC Annual Reports 2019-2024; authors\' computation.',fontsize=7,color=MUTED)
+    f.tight_layout(rect=(0,.07,1,.95)); f.savefig(FIGURES/'F1_v2_combined_ratio_component_vs_published.png',dpi=200)
+else:
+    print('v2 figures skipped (v2 tables absent: NIC quarterly returns workbook not available).')

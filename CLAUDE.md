@@ -14,17 +14,24 @@ steps 09 and 12 skip and the public pipeline reproduces the v1 (Tier 1, audited 
 - 02 maps blocks to variables by (report, header line); validated against src/expected_blocks.json
 - 12 returns panel (Tier 2) from the NIC quarterly returns workbook -> data/processed/confidential/returns_panel.csv,
   returns_quarterly.csv; aggregates outputs/tables/returns_*.csv, seasonality.csv (skips if absent). Runs before 03.
-- 03 builds data/processed/panel_master.csv (29 insurers x 2015-2024, unbalanced); Tier 1 rules in src/tier1.py
-- 04 models + diagnostics -> outputs/tables; also the gross-basis robustness (LR_g/ER_g/CR_g = ratio x RET/100,
+- 03 builds data/processed/panel_master.csv (29 insurers x 2015-2024, unbalanced; Tier 1 only, public); Tier 1 rules in
+  src/tier1.py. With the workbook also data/processed/confidential/panel_v2.csv (v2 analysis panel: component-based
+  outcomes, single growth measure, assets, 2020 ER variant)
+- 04 models + diagnostics -> outputs/tables (v1 path: regressions.csv, pinned); v2 main models via src/models_v2.py ->
+  main_models_v2.csv, rq3_tests_v2.csv, cre_mundlak_v2.csv, industry_trends_v2.csv, v1_v2_bridge*.csv, growth_quartiles_v2.csv,
+  exits.csv, appendix_robustness.csv (ownership changes: RENAMES in src/config.py) (skipped without the workbook); also the gross-basis robustness (LR_g/ER_g/CR_g = ratio x RET/100,
   data_issues A16): robust_gross_basis.csv, industry_trends_gross.csv, er_ret_correlation.csv (not pinned)
-- 05 figures -> outputs/figures
+- 05 figures -> outputs/figures (v1 F1-F6; v2: F1_v2_combined_ratio_component_vs_published.png, F3_growth_quartiles_v2.png)
 - 06 facultative appendix (skips if confidential file absent)
-- 07 validation: 39 checks incl. pinned headline coefficients (37 + SKIP line without the workbook). Must pass before results are used.
+- 07 validation: 48 checks incl. two pinned sets, "v1 (public, Tier 1 only)" and "v2 (thesis, requires NIC workbook)"
+  (38 + SKIP line without the workbook). Must pass before results are used.
   Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
 - 08 System GMM robustness (pydynpd); runs after 07, results not pinned
 - 09 total assets as size control from the NIC quarterly returns workbook (skips if absent); not pinned
 - 10 leave-one-insurer-out for M1 (growth and size); not pinned
 - 11 NIC printed CR vs LR+ER mismatch analysis (2015-16) -> cr_mismatch_analysis.csv; counts pinned in 07
+- 13 Hansen (1999) threshold test on g_L1 (v2): simulation validation -> threshold_simulation.csv; real data only when
+  RUN_REAL_DATA = True (after the authors review the simulations). Wild bootstrap under the null (departure from Hansen, D20)
 Shared code: src/models.py (fe with the D12 SE convention, within = exact two-way within-transformation, wcb on it (D14), twdm), src/names.py (canonical insurer IDs),
 src/tier1.py (audited Tier 1 table, steps 03 and 12) and src/returns_io.py (workbook reading rules, steps 09 and 12).
 All two-way FE models must use models.fe; never redefine it in a step.

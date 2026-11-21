@@ -9,7 +9,7 @@ from pathlib import Path
 
 STEPS = ["01_extract_nic.py", "02_build_long.py", "12_returns_panel.py", "03_build_panel.py", "04_analysis.py",
          "05_figures.py", "06_facultative.py", "07_validate.py", "08_system_gmm.py",
-         "09_total_assets.py", "10_leave_one_out.py", "11_cr_mismatch.py"]
+         "09_total_assets.py", "10_leave_one_out.py", "11_cr_mismatch.py", "13_threshold.py"]
 start = 0
 if "--from" in sys.argv:
     n = int(sys.argv[sys.argv.index("--from") + 1])

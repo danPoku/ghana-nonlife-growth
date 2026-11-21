@@ -21,7 +21,8 @@ python run_all.py            # resume at a script number: python run_all.py --fr
 Rscript R/twfe_and_system_gmm.R
 ```
 
-The run ends with **39 validation checks** (37 plus a SKIP line when the NIC quarterly returns workbook is absent).
+The run ends with **48 validation checks** (38 plus a SKIP line when the NIC quarterly returns workbook is absent),
+including two independently pinned result sets: "v1 (public, Tier 1 only)" and "v2 (thesis, requires NIC workbook)".
 All must pass before results are used.
 
 **v2 headline results require the NIC quarterly returns workbook** (an NIC product; the figures are insurers'

@@ -43,3 +43,13 @@ MERGERS = [
     dict(insurer_id="SAHAM_SANLAM", year=2024, absorbed="Allianz Insurance Company",
          source="NIC 2024 Annual Report (Allianz N-A in 2024)"),
 ]
+
+# Ownership / brand changes (v2 sensitivity, Part 3): first year under the new name, from the year-end (Q4) names in the
+# NIC quarterly returns workbook. The NIC annual reports agree except Coronation: the 2020 report already prints
+# "Coronation" while the Q4 2020 return still reads "Wapic" (alt_year = 2020, run as a second variant).
+RENAMES = [
+    dict(insurer_id="SUNU", year=2018, old="Equity Assurance", new="SUNU Assurances"),
+    dict(insurer_id="BEDROCK", year=2019, old="GN Insurance", new="Bedrock Insurance"),
+    dict(insurer_id="CORONATION", year=2021, old="WAPIC Insurance", new="Coronation Insurance", alt_year=2020),
+    dict(insurer_id="SAHAM_SANLAM", year=2022, old="Saham Insurance", new="Sanlam Insurance"),
+]
