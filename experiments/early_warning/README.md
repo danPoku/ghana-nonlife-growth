@@ -244,3 +244,58 @@ submissions. Insurer-level outputs stay in `outputs/confidential/` (git-ignored)
   `outputs/exp3_results.csv`, `outputs/exp3_ifrs17.csv`; insurer-level in `outputs/confidential/`.
 - Anything changed during analysis is recorded, with its reason, in a section 6 "Deviations and results (v2
   additions)"; sections 1-5 stay unchanged after the commit that section 6 names.
+
+## 6. Deviations and results, v2 additions (added AFTER analysis; sections 1-5 unchanged since commit 3eef056)
+
+Script `exp3_v2_additions.py`; aggregate outputs `outputs/exp3_results.csv`, `outputs/exp3_ifrs17.csv`; insurer-level
+scores in `outputs/confidential/`. Test rows t = 2021-2022: 52 insurer-years (26 insurers, 17 red); 48 (25 insurers,
+15 red) meet the quarterly requirements. Consistency check: on the Exp 1 data the CR(t-1) AUC is 0.803 [0.619, 0.940],
+as in section 4.
+
+### Deviations from section 5
+None in the analysis. Reporting note: in 4a, both growth measures are scored on the rows complete on CR(t-1) and on
+both growth measures (52 rows, the same as complete on the v2 measure alone).
+
+### 4a. CR(t-1) vs premium growth (paired)
+| Target | AUC CR(t-1) | AUC growth v2 | AUC growth v1 | CR(t-1) - growth v2 | Reading |
+|---|---|---|---|---|---|
+| Primary (CR_corr2020) | 0.738 [0.551, 0.878] | 0.519 [0.335, 0.699] | 0.524 [0.336, 0.703] | +0.218 [-0.028, +0.442] | **no detectable difference** (CI includes 0) |
+| Sensitivity (CR_t1) | 0.803 [0.619, 0.940] | 0.519 | 0.524 | +0.284 [+0.050, +0.493] | growth carries less warning value than CR(t-1) |
+| Exp 1 v1 data (published CR) | 0.803 [0.619, 0.940] | - | 0.524 [0.336, 0.703] | +0.280 [+0.055, +0.488] | growth carries less warning value than CR(t-1) |
+
+Growth has no warning value under either measure (AUC about 0.52, direction from training: lower growth = riskier).
+Whether CR(t-1) is detectably better depends on the 2020 correction: the corrected 2020 CR, used as CR(t-1) for the
+2021 test rows, ranks insurers less well (AUC 0.738 against 0.803), and the paired CI then just includes 0.
+
+### 4b. Quarterly indicators (test rows passing all checks, n = 48, 15 red)
+- dQ2CR (higher = riskier, pre-specified): AUC 0.503 [0.319, 0.676]. No signal.
+- gQ2 (two-sided): AUC 0.503 [0.326, 0.696] with higher growth = riskier. **No detectable signal** in either direction.
+
+### 4c. Incremental test (pre-registered rule)
+| Target | A: CR(t-1) on B rows | B: CR(t-1) + dQ2CR | B - A | Rule |
+|---|---|---|---|---|
+| Primary | 0.751 [0.558, 0.892] | 0.749 [0.560, 0.889] | -0.001 [-0.016, +0.012] | **DOES NOT ADD INFORMATION** |
+| Sensitivity (not decisive) | 0.821 [0.654, 0.957] | 0.826 [0.661, 0.958] | +0.005 [-0.006, +0.018] | does not add |
+
+Secondary model C (+ gQ2), not decisive: C - A = -0.013 [-0.058, +0.031] (primary). Training rows 107 (B), 105 (C).
+With 48 test rows the CI is narrow around 0 only because B and A rank almost identically; the result says the Q2
+change adds nothing measurable here, not that it cannot.
+
+### 4d. Non-submission in t-1 (exploratory)
+AUC 0.471 [0.424, 0.500]. Only 2 of 52 test rows had any quarter without figures in t-1 (neither red): no signal, and
+too few cases to judge.
+
+### 4e. IFRS 17 recalibration (descriptive)
+| Basis | Year | n | Median CR | p75 | Share > 110 | Share above the IFRS 4 cut-off (118) |
+|---|---|---|---|---|---|---|
+| IFRS 4 audited (corrected) | 2021 | 26 | 98.5 | 109.5 | 27% | 12% |
+| IFRS 4 audited (corrected) | 2022 | 26 | 104.0 | 124.8 | 38% | 35% |
+| IFRS 17 published | 2023 | 26 | 99.0 | 104.8 | 12% | 8% |
+| IFRS 17 published | 2024 | 25 | 95.0 | 111.0 | 28% | 12% |
+| IFRS 17 workbook Q4 | 2024 | 20 | 93.8 | 103.6 | 15% | 5% |
+| IFRS 17 workbook Q4 | 2025 | 24 | 91.9 | 105.1 | 25% | 17% |
+
+Recalibrated on IFRS 17 pairs: published 2023 -> 2024 (n 25, 7 red): AUC 0.68 [0.39, 0.94], Youden cut-off 103.5
+(bootstrap range 86.5 to 2,090: unstable); workbook 2024 -> 2025 (n 19, 4 red; 24 one-class resamples redrawn):
+AUC 0.93 [0.78, 1.00], cut-off 102.7 [98.9, 131.3]. Under IFRS 17 the CR distribution sits lower, the IFRS 4 cut-off
+(118) flags few insurers, and both re-estimated cut-offs fall near 103. Samples are very small; no verdict.
