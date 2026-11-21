@@ -6,19 +6,21 @@ supervisor Dr. Perpetual Andam Boiquaye. Question: does insurer-level premium gr
 predict underwriting performance (loss, expense, combined ratio, year t) in Ghana's non-life sector?
 
 ## Pipeline
-`python run_all.py` runs src/01..10 in order (resume with `--from N`). R/twfe_and_system_gmm.R runs after.
+`python run_all.py` runs src/01..11 in order (resume with `--from N`). R/twfe_and_system_gmm.R runs after.
 src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in data/raw/macro/.
 - 01 verifies SHA-256 of data/raw/nic_text/*.txt, parses table blocks
 - 02 maps blocks to variables by (report, header line); validated against src/expected_blocks.json
 - 03 builds data/processed/panel_master.csv (29 insurers x 2015-2024, unbalanced)
-- 04 models + diagnostics -> outputs/tables
+- 04 models + diagnostics -> outputs/tables; also the gross-basis robustness (LR_g/ER_g/CR_g = ratio x RET/100,
+  data_issues A16): robust_gross_basis.csv, industry_trends_gross.csv, er_ret_correlation.csv (not pinned)
 - 05 figures -> outputs/figures
 - 06 facultative appendix (skips if confidential file absent)
-- 07 validation: 32 checks incl. pinned headline coefficients. Must pass before results are used.
+- 07 validation: 36 checks incl. pinned headline coefficients. Must pass before results are used.
   Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
 - 08 System GMM robustness (pydynpd); runs after 07, results not pinned
 - 09 total assets as size control from the confidential quarterly workbook (skips if absent); not pinned
 - 10 leave-one-insurer-out for M1 (growth and size); not pinned
+- 11 NIC printed CR vs LR+ER mismatch analysis (2015-16) -> cr_mismatch_analysis.csv; counts pinned in 07
 Shared code: src/models.py (fe with the D12 SE convention, wcb, twdm) and src/names.py (canonical insurer IDs).
 All two-way FE models must use models.fe; never redefine it in a step.
 
