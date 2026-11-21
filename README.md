@@ -39,13 +39,15 @@ public pipeline reproduces the **v1 (Tier 1, audited NIC annual reports) results
 | 12 | `src/12_returns_panel.py` | Returns panel (Tier 2) from the NIC quarterly returns workbook (skipped if absent): insurer-level → `data/processed/confidential/` (git-ignored); concordance, seasonality, survivorship, non-submission → `outputs/tables/returns_*.csv`, `seasonality.csv`. Runs before step 3 |
 | 3 | `src/03_build_panel.py` | Insurer-year panel → `data/processed/panel_master.csv` |
 | 4 | `src/04_analysis.py` | Descriptives, TWFE models, diagnostics, wild cluster bootstrap, dynamic check, gross-basis robustness → `outputs/tables/` |
-| 5 | `src/05_figures.py` | Figures 1–5 → `outputs/figures/` |
+| 5 | `src/05_figures.py` | Figures 1–5 (v1) and, with the workbook, v2 Figures 1-5, 7 (year-specific MID slopes) and 8 (seasonality) → `outputs/figures/` |
 | 6 | `src/06_facultative.py` | Supplementary facultative-reinsurance appendix (skipped if confidential file absent) |
 | 7 | `src/07_validate.py` | Data-fidelity and pinned-result checks |
 | 8 | `src/08_system_gmm.py` | System GMM robustness (pydynpd) → `outputs/tables/system_gmm*.csv` |
 | 9 | `src/09_total_assets.py` | Total assets as size control, from the NIC quarterly returns workbook (skipped if absent) → `outputs/tables/robust_total_assets*.csv` |
 | 10 | `src/10_leave_one_out.py` | Leave-one-insurer-out re-estimation of M1 → `outputs/tables/robust_leave_one_out*.csv`, Figure 6 |
 | 11 | `src/11_cr_mismatch.py` | NIC printed CR vs LR + ER, 2015-16 → `outputs/tables/cr_mismatch_analysis.csv` |
+| 13 | `src/13_threshold.py` | Hansen (1999) threshold test (simulation validation, then real data) → `threshold_simulation.csv`, `threshold_v2.csv` |
+| 14 | `src/14_appendix.py` | Thesis appendix tables `outputs/tables/appendix_*.csv` (FE models, diagnostics, GMM, replication, early warning, robustness, seasonality, concordance) |
 | R | `R/twfe_and_system_gmm.R` | TWFE replication + System GMM → `outputs/tables/R_results.txt` |
 
 ## Data
@@ -70,12 +72,14 @@ public pipeline reproduces the **v1 (Tier 1, audited NIC annual reports) results
 
 - `docs/methodology_decisions.md` — changes from the defence version, with reasons and sign-off status
 - `docs/data_issues.md` — every data problem found and how it is handled
-- `docs/codebook.md` — all panel variables
+- `docs/codebook.md` — all panel variables (Tier 1 panel, returns panel, v2 analysis panel)
+- `outputs/tables/appendix_*.csv` — the thesis appendix tables (v2), each with a one-line note on sample and inference
+- `outputs/tables/v1/`, `outputs/figures/v1/` — frozen v1 outputs; git tag `v1-methodology` for the pre-D14 originals
 - `CLAUDE.md` — project context and rules for Claude Code
 
 ## Status and open items
 
-- [ ] Authors and supervisor agree the methodology changes (D1–D11)
+- [ ] Authors and supervisor agree the methodology changes (D1–D21; v2 = D14–D21)
 - [ ] Run and check the R script (System GMM)
 - [ ] Verify CPI 2015–18 and 2021 against Ghana Statistical Service
 - [ ] Verify methods citations (APA 7)
@@ -85,3 +89,15 @@ public pipeline reproduces the **v1 (Tier 1, audited NIC annual reports) results
 
 National Insurance Commission. *Annual report on the insurance industry* (2019, 2020, 2022, 2024 eds.). NIC, Accra.
 Insurance Act, 2021 (Act 1061). Republic of Ghana.
+
+## Pre-registrations
+
+Three analyses were pre-registered: the README section was committed before any analysis was run. The
+original working repository had different commit hashes from this published history (it was replayed to
+remove confidential files); the pre-registered text is byte-identical in both, so both hashes are listed.
+
+| Analysis | Pre-registration commit (date, UTC) | Results commit | Deviations |
+|---|---|---|---|
+| Akotey et al. (2023) replication (`experiments/akotey_replication/`) | `27f0cb3` (= `2c0df93` in the working repository), 1 Nov 2026 11:57 | `184de4e`, 2 Nov 2026 | 1: the balanced subsample was redefined because MSGR cannot exist in 2015 (README section 4). Bootstrap p-values later updated for D14 and its addendum; verdicts unchanged |
+| Early warning, Experiments 1-2 (`experiments/early_warning/`) | `00a2c89` (= `98b4e34`), 1 Nov 2026 09:06 | `4595f99`, 1 Nov 2026 | 2: Exp 2 ignores the Q2 2022 expense-ratio column (a copy of the claims ratio); Exp 1 bootstrap reimplemented with identical draws (README section 4) |
+| Early warning, v2 additions 4a-4e | `3eef056`, 21 Nov 2026 19:11 (pushed before analysis) | `06927a4`, 21 Nov 2026 19:18 | None (README section 6) |

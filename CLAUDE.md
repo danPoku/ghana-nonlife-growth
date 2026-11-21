@@ -6,7 +6,7 @@ supervisor Dr. Perpetual Andam Boiquaye. Question: does insurer-level premium gr
 predict underwriting performance (loss, expense, combined ratio, year t) in Ghana's non-life sector?
 
 ## Pipeline
-`python run_all.py` runs 01, 02, 12, 03, 04, ..., 11 (resume with `--from N`, N = script number). R/twfe_and_system_gmm.R runs after.
+`python run_all.py` runs 01, 02, 12, 03, 04, ..., 11, 13, 14 (resume with `--from N`, N = script number). R/twfe_and_system_gmm.R runs after.
 src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in data/raw/macro/.
 **v2 headline results require the NIC quarterly returns workbook (data/raw/quarterly/, not in git). Without it,
 steps 09 and 12 skip and the public pipeline reproduces the v1 (Tier 1, audited annual reports) results only.**
@@ -26,12 +26,14 @@ steps 09 and 12 skip and the public pipeline reproduces the v1 (Tier 1, audited 
 - 07 validation: 48 checks incl. two pinned sets, "v1 (public, Tier 1 only)" and "v2 (thesis, requires NIC workbook)"
   (38 + SKIP line without the workbook). Must pass before results are used.
   Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
-- 08 System GMM robustness (pydynpd); runs after 07, results not pinned
+- 08 System GMM robustness (pydynpd); runs after 07, results not pinned; v1 -> system_gmm*.csv, v2 -> system_gmm*_v2.csv
 - 09 total assets as size control from the NIC quarterly returns workbook (skips if absent); not pinned
-- 10 leave-one-insurer-out for M1 (growth and size); not pinned
+- 10 leave-one-insurer-out for M1 (growth and size); not pinned; v1 and v2 (robust_leave_one_out*_v2.csv, F6_leave_one_out_v2.png)
 - 11 NIC printed CR vs LR+ER mismatch analysis (2015-16) -> cr_mismatch_analysis.csv; counts pinned in 07
 - 13 Hansen (1999) threshold test on g_L1 (v2): simulation validation -> threshold_simulation.csv; real data only when
-  RUN_REAL_DATA = True (after the authors review the simulations). Wild bootstrap under the null (departure from Hansen, D20)
+  RUN_REAL_DATA = True (approved; threshold_v2.csv). Wild bootstrap under the null (departure from Hansen, D20)
+- 14 assembles the thesis appendix tables outputs/tables/appendix_*.csv (8 files, each with a one-line `note`) from aggregate outputs;
+  runs last and checks its own output
 Shared code: src/models.py (fe with the D12 SE convention, within = exact two-way within-transformation, wcb on it (D14), twdm), src/names.py (canonical insurer IDs),
 src/tier1.py (audited Tier 1 table, steps 03 and 12) and src/returns_io.py (workbook reading rules, steps 09 and 12).
 All two-way FE models must use models.fe; never redefine it in a step.
@@ -50,6 +52,10 @@ All two-way FE models must use models.fe; never redefine it in a step.
 - Growth across a merger is missing (D13): add new mergers to MERGERS in src/config.py, never hard-code them.
 
 ## Key decisions (see docs/methodology_decisions.md)
+v2 (thesis): D15 two data tiers, component-based outcomes on the NEP + RIC basis (2015-16 and 2020 Tier 1 corrections as sensitivities);
+D16 single exact-GWP growth measure; D17 ln(total assets) as size; D18 two-way Mundlak (within vs between); D19 year-specific MID
+slopes with pre-trend test; D20 Hansen threshold (wild bootstrap); D21 quarterly returns: no incremental early-warning value.
+v1 (public, superseded):
 ln(lagged GWP) replaces ln(assets) (assets not published per insurer; workbook assets used only as a robustness check, step 09); net premium-to-equity leverage control;
 growth and market-share growth in separate models; start-up years excluded + 1/99 winsorising (raw as sensitivity);
 CR constructed as LR+ER; MID tested as a post-2020 slope change (insurer-by-class data not public);

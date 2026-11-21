@@ -69,6 +69,58 @@ def mundlak(D, y, X, fe_params=None):
                         max_abs_diff_within_vs_fe=diff, va_test_F=F, va_test_q=q, va_test_df2=df2, va_test_p=p))
     return out
 
+def diagnostics(B, y, X):
+    """M1 diagnostics as in step 04 (v1), on the v2 sample: classical Hausman (FE vs RE with year dummies), Wooldridge
+    serial correlation (FD residuals on their lag, H0 coefficient -0.5), modified Wald groupwise heteroskedasticity
+    (Greene), Pesaran CD cross-sectional dependence."""
+    from scipy import stats
+    from linearmodels.panel import PanelOLS, RandomEffects
+    d = B.dropna(subset=[y] + X).set_index(['insurer_id', 'year'])
+    fe_ = PanelOLS(d[y], d[X], entity_effects=True, time_effects=True).fit(cov_type='unadjusted')
+    dd = d.copy()
+    for yr in dd.index.get_level_values(1).unique()[1:]: dd[f'y{yr}'] = (dd.index.get_level_values(1) == yr).astype(float)
+    Xr = X + [c for c in dd.columns if c.startswith('y20')]
+    re_ = RandomEffects(dd[y], sm.add_constant(dd[Xr])).fit()
+    b = fe_.params[X] - re_.params[X]; Vd = fe_.cov.loc[X, X] - re_.cov.loc[X, X]
+    H = float(b.T @ np.linalg.pinv(Vd.values) @ b); hp = 1 - stats.chi2.cdf(H, len(X))
+    fd = d.reset_index().sort_values(['insurer_id', 'year'])
+    fdv = fd.groupby('insurer_id')[[y] + X].diff(); fdv['insurer_id'] = fd.insurer_id; fdv['year'] = fd.year; fdv = fdv.dropna()
+    fdv['e'] = sm.OLS(fdv[y], fdv[X]).fit().resid; fdv['e_l'] = fdv.groupby('insurer_id').e.shift(); f2 = fdv.dropna()
+    w = sm.OLS(f2.e, f2.e_l).fit(cov_type='cluster', cov_kwds={'groups': f2.insurer_id})
+    wt = ((w.params['e_l'] + 0.5) / w.bse['e_l']) ** 2; wp = 1 - stats.f.cdf(wt, 1, f2.insurer_id.nunique() - 1)
+    e = fe_.resids; g = e.groupby(level=0); s2i = g.apply(lambda x: (x ** 2).mean()); Ti = g.size()
+    Vi = g.apply(lambda x: ((x ** 2 - (x ** 2).mean()) ** 2).sum() / (len(x) * (len(x) - 1)) if len(x) > 1 else np.nan)
+    ok = (Ti >= 3) & (Vi > 1e-8); MW = float((((s2i - (e ** 2).mean()) ** 2) / (Vi / Ti))[ok].sum()); mwp = 1 - stats.chi2.cdf(MW, ok.sum())
+    ew = e.unstack(level=0); ids = ew.columns; num = 0; cnt = 0
+    for i in range(len(ids)):
+        for j in range(i + 1, len(ids)):
+            pr = ew[[ids[i], ids[j]]].dropna()
+            if len(pr) >= 3 and pr.std().min() > 0: num += np.sqrt(len(pr)) * np.corrcoef(pr.iloc[:, 0], pr.iloc[:, 1])[0, 1]; cnt += 1
+    CD = float(np.sqrt(2 / cnt) * num) if cnt else np.nan
+    return dict(n=int(fe_.nobs), hausman_chi2=H, hausman_df=len(X), hausman_p=float(hp), wooldridge_F=float(wt), wooldridge_p=float(wp),
+                modwald_chi2=MW, modwald_p=float(mwp), pesaran_CD=CD, pesaran_p=float(2 * (1 - stats.norm.cdf(abs(CD)))))
+
+def anderson_hsiao(E):
+    """Anderson-Hsiao FD-IV (as step 04, v1) on v2 data: dY on dY(t-1) instrumented by Y(t-2), differenced M1
+    regressors (g_L1, RET, ln_assets_L1, LEV_net_L1), year dummies; insurer-clustered SEs; LR_c, ER_c, CR_c."""
+    from linearmodels.iv import IV2SLS
+    out = []
+    X0 = ['g_L1', 'RET', 'ln_assets_L1', 'LEV_net_L1']
+    for y in ['LR_c', 'ER_c', 'CR_c']:
+        d = E.sort_values(['insurer_id', 'year']).copy()
+        for v in [y] + X0: d[v] = wins(d[v])
+        d['dY'] = d.groupby('insurer_id')[y].diff(); d['dYl'] = d.groupby('insurer_id')['dY'].shift()
+        d['Yl2'] = d.groupby('insurer_id')[y].shift(2)
+        for v in X0: d['d_' + v] = d.groupby('insurer_id')[v].diff()
+        d = d.dropna(subset=['dY', 'dYl', 'Yl2'] + ['d_' + v for v in X0])
+        yd = pd.get_dummies(d.year, prefix='y', drop_first=True).astype(float)
+        exog = pd.concat([d[['d_' + v for v in X0]], yd], axis=1); exog['const'] = 1
+        r = IV2SLS(d.dY, exog, d[['dYl']], d[['Yl2']]).fit(cov_type='clustered', clusters=d.insurer_id)
+        out.append(dict(outcome=y, term='d_g_L1', coef=float(r.params['d_g_L1']), se=float(r.std_errors['d_g_L1']),
+                        p=float(r.pvalues['d_g_L1']), rho=float(r.params['dYl']), rho_p=float(r.pvalues['dYl']), n=int(r.nobs),
+                        insurers=int(d.insurer_id.nunique()), first_stage_F=float(r.first_stage.diagnostics['f.stat'].iloc[0])))
+    return pd.DataFrame(out)
+
 def run():
     PV = CONFIDENTIAL / 'panel_v2.csv'
     if not (QUARTERLY_FILE.exists() and PV.exists()):
@@ -186,8 +238,18 @@ def run():
             o = fit_rows(B[keep], y, specs['M1'], 'robustness', 'M1', y, lab,
                          f'{int((~keep).sum())} insurer-years dropped (SUNU, BEDROCK, CORONATION, SAHAM_SANLAM); primary winsorising bounds kept')[0]
             rows += o; rob += [dict(section='ownership change', **r) for r in o]
+    # ---------- growth measure (v1 vs v2) and 2017-2022 only, on the primary outcomes (Part 5 robustness) ----------
+    Bg = B.copy(); Bg['g_v1_L1_w'] = wins(Bg.g_v1_L1)
+    for y in ['LR_w', 'ER_w', 'CR_w']:
+        rows += fit_rows(Bg, y, ['g_v1_L1_w'] + ctrl, 'robustness', 'M1', y, 'v1 growth measure (g_v1_L1)',
+                         'winsorised 1/99 on the v2 sample')[0]
+        rows += fit_rows(B[B.year >= 2017], y, specs['M1'], 'robustness', 'M1', y, '2017-2022 only',
+                         '2016 outcomes dropped (2015-16 tabulation issue); primary winsorising bounds kept')[0]
     M = pd.DataFrame(rows); M.to_csv(TABLES / 'main_models_v2.csv', index=False)
-    pd.DataFrame(rob).to_csv(TABLES / 'appendix_robustness.csv', index=False)   # Part 5 adds the other sections
+    # ---------- diagnostics on M1 (v2) and Anderson-Hsiao (v2) ----------
+    pd.DataFrame([dict(outcome=y, **diagnostics(B, y, specs['M1'])) for y in ['LR_w', 'ER_w', 'CR_w']]).to_csv(
+        TABLES / 'diagnostics_v2.csv', index=False)
+    anderson_hsiao(E).to_csv(TABLES / 'anderson_hsiao_v2.csv', index=False)
     # ---------- v1 -> v2 bridge: change one element at a time (M1) ----------
     def m1(D0, lr, er, gcol, size, additive):
         D = D0.dropna(subset=[lr, er, gcol, 'RET', size, 'LEV_net_L1']).copy()
@@ -268,4 +330,4 @@ def run():
     print('\nv1 -> v2 bridge:'); print(BR.round(4).to_string(index=False))
     print('\nExits:'); print(EX.round(2).to_string(index=False))
     print('Saved: main_models_v2.csv, rq3_tests_v2.csv, cre_mundlak_v2.csv, industry_trends_v2.csv, v1_v2_bridge*.csv, '
-          'growth_quartiles_v2.csv, exits.csv, appendix_robustness.csv (outputs/tables); estimation_sample_v2.csv, exits.csv (confidential)')
+          'growth_quartiles_v2.csv, exits.csv, diagnostics_v2.csv, anderson_hsiao_v2.csv (outputs/tables); estimation_sample_v2.csv, exits.csv (confidential)')

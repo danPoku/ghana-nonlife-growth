@@ -253,8 +253,8 @@ scores in `outputs/confidential/`. Test rows t = 2021-2022: 52 insurer-years (26
 as in section 4.
 
 ### Deviations from section 5
-None in the analysis. Reporting note: in 4a, both growth measures are scored on the rows complete on CR(t-1) and on
-both growth measures (52 rows, the same as complete on the v2 measure alone).
+**There were no deviations from section 5.** (For the record: in 4a, both growth measures are scored on the rows complete on
+CR(t-1) and on both growth measures, as section 5 requires; these are the same 52 rows as those complete on the v2 measure alone.)
 
 ### 4a. CR(t-1) vs premium growth (paired)
 | Target | AUC CR(t-1) | AUC growth v2 | AUC growth v1 | CR(t-1) - growth v2 | Reading |
@@ -298,4 +298,5 @@ too few cases to judge.
 Recalibrated on IFRS 17 pairs: published 2023 -> 2024 (n 25, 7 red): AUC 0.68 [0.39, 0.94], Youden cut-off 103.5
 (bootstrap range 86.5 to 2,090: unstable); workbook 2024 -> 2025 (n 19, 4 red; 24 one-class resamples redrawn):
 AUC 0.93 [0.78, 1.00], cut-off 102.7 [98.9, 131.3]. Under IFRS 17 the CR distribution sits lower, the IFRS 4 cut-off
-(118) flags few insurers, and both re-estimated cut-offs fall near 103. Samples are very small; no verdict.
+(118) flags few insurers, and both re-estimated cut-offs fall near 103 (bootstrap ranges 86.5 to 2,090.5 and 98.9 to 131.3).
+**IFRS 17 cut-off: recalibration needed; current evidence too thin to set a value.** Samples are very small; no verdict.

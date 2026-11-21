@@ -27,7 +27,7 @@ f,ax=plt.subplots(figsize=(7,4));
 xx=np.arange(4); ax.bar(xx-.2,G.LR,.4,label='Loss ratio',color='#2e75b6'); ax.bar(xx+.2,G.ER,.4,label='Expense ratio',color='#f4b183')
 for i,(c,s) in enumerate(zip(G.CR,G.share_CR_gt100)): ax.text(i,max(G.ER)+6,f'CR {c:.0f}%\n{s:.0f}% loss-making',ha='center',fontsize=8)
 ax.set_xticks(xx); ax.set_xticklabels([f"{q}\n(median {g:+.0f} pp)" for q,g in zip(G.gq,G.g_excess_L1)],fontsize=8); ax.set_ylim(0,115)
-ax.set_ylabel('Ratio in year t (%)'); ax.legend(frameon=False,fontsize=8,loc='upper left')
+ax.set_ylabel('Ratio in year t (%)'); ax.legend(frameon=False,fontsize=8,ncol=2,loc='lower right',bbox_to_anchor=(1,1.0))
 ax.set_title('Figure 3. Underwriting ratios by quartile of prior-year excess premium growth',loc='left',fontsize=10)
 f.text(.01,.01,'Estimation sample 2016–2022, start-up years excluded, winsorised 1/99. Excess growth = insurer growth − year median.',fontsize=7)
 f.tight_layout(rect=(0,.03,1,1)); f.savefig(FIGURES/'F3_growth_quartiles.png',dpi=200)
@@ -76,10 +76,11 @@ if GQ2.exists() and IT2.exists():
     ax.set_ylim(0,top+30); ax.set_ylabel('Ratio in year t (% of NEP + RIC)'); ax.grid(axis='y',color='#e5e5e5',lw=.6); ax.set_axisbelow(True)
     ax.legend(frameon=False,fontsize=8,ncol=2,loc='lower right',bbox_to_anchor=(1,1.0))
     f.suptitle('Figure 3 (v2). Underwriting ratios by quartile of prior-year excess premium growth',x=.01,ha='left',fontsize=10)
-    f.text(.01,.01,'v2 estimation sample 2016-2022 (171 insurer-years), start-up years excluded; component-based ratios, LR and ER\n'
-           'winsorised 1/99, CR = LR + ER. Excess growth = insurer growth (single exact-GWP measure) minus the year median.\n'
-           'Source: NIC quarterly returns (insurers\' unaudited submissions); NIC Annual Reports; authors\' computation.',fontsize=7,color=MUTED)
-    f.tight_layout(rect=(0,.10,1,.95)); f.savefig(FIGURES/'F3_growth_quartiles_v2.png',dpi=200)
+    f.text(.01,.01,'The pattern compares insurers: it reflects between-insurer differences (faster-growing insurers have lower average ratios;\n'
+           'Mundlak decomposition, D18), not the effect of an insurer\'s own growth, which is nil within insurers (two-way FE).\n'
+           'v2 sample 2016-2022 (171 insurer-years), start-ups excluded; component-based ratios, LR and ER winsorised 1/99, CR = LR + ER;\n'
+           'excess growth = insurer growth minus the year median. Source: NIC quarterly returns (insurers\' unaudited submissions); NIC Annual Reports.',fontsize=7,color=MUTED)
+    f.tight_layout(rect=(0,.13,1,.95)); f.savefig(FIGURES/'F3_growth_quartiles_v2.png',dpi=200)
     # RQ1 (v2): component-based vs published combined ratio, NWP-weighted, with the 2019-20 gap annotated
     S=pd.read_csv(IT2); f,ax=plt.subplots(figsize=(8.2,4.4))
     ax.axvspan(2022.5,2023.5,color='#f0f0f0'); ax.text(2023,86,'2023: published\nis IFRS 17',ha='center',fontsize=7,color=MUTED)
@@ -103,3 +104,96 @@ if GQ2.exists() and IT2.exists():
     f.tight_layout(rect=(0,.07,1,.95)); f.savefig(FIGURES/'F1_v2_combined_ratio_component_vs_published.png',dpi=200)
 else:
     print('v2 figures skipped (v2 tables absent: NIC quarterly returns workbook not available).')
+
+# ---------- v2 figures, Part 5: F2, F4, F5, F7, F8 (aggregate tables only; skipped if absent) ----------
+PURPLE = '#7a4fa0'   # third categorical slot; blue/orange/purple validated together (CVD dE >= 18.6, contrast >= 3:1)
+MV, SEAS = TABLES/'main_models_v2.csv', TABLES/'seasonality.csv'
+def finish(f, title, note, path, bottom=.08):
+    f.suptitle(title, x=.01, ha='left', fontsize=10); f.text(.01, .01, note, fontsize=7, color=MUTED)
+    f.tight_layout(rect=(0, bottom, 1, .95)); f.savefig(path, dpi=200); plt.close(f)
+if IT2.exists():
+    # F2 (v2): component-based decomposition, NWP-weighted
+    S = pd.read_csv(IT2); f, ax = plt.subplots(figsize=(8, 4.2)); x = S.year
+    ax.bar(x, S.LR_component, .8, color=BLUE, label='Loss ratio'); ax.bar(x, S.ER_component, .8, bottom=S.LR_component, color=ORANGE, label='Expense ratio')
+    for xi, a, b in zip(x, S.LR_component, S.ER_component): ax.text(xi, a + b + 2, f'{a + b:.0f}', ha='center', fontsize=8, color=INK)
+    ax.axhline(100, color=INK, lw=.8); ax.set_xticks(x); ax.set_ylim(0, 160); ax.set_ylabel('% of NEP + RIC (NWP-weighted)')
+    ax.grid(axis='y', color='#e5e5e5', lw=.6); ax.set_axisbelow(True); ax.legend(frameon=False, fontsize=8, ncol=2, loc='upper right')
+    finish(f, 'Figure 2 (v2). Decomposition of the aggregate combined ratio (component-based): expenses dominate',
+           'Component-based ratios on the NEP + RIC basis (returns where Q4 passes concordance; published otherwise); all insurers; weights = NWP. 2023 from the\n'
+           "IFRS 4 returns. Source: NIC quarterly returns (insurers' unaudited submissions); NIC Annual Reports; authors' computation.",
+           FIGURES/'F2_LR_ER_decomposition_v2.png')
+if MV.exists():
+    M = pd.read_csv(MV)
+    # F4 (v2): effect of +10 pp lagged growth across specifications and outcome variants
+    specs = [('main', 'M0_growth_only', 'component (primary)', 'Growth only (M0)'), ('main', 'M1', 'component (primary)', 'M1 (primary)'),
+             ('main', 'M1b_lngwp_size', 'component (primary)', 'M1b: ln(GWP) as size'), ('main', 'M1c_reserving', 'component (primary)', 'M1c: + reserving'),
+             ('outcome_variant', 'M1', 'Tier 1 published (2015-16 ER corrected)', 'Tier 1 published'),
+             ('outcome_variant', 'M1', 'Tier 1 corrected 2020', 'Tier 1 corrected 2020'),
+             ('outcome_variant', 'M1', 'component, excl. 2020 outcomes', 'Excl. 2020 outcomes'),
+             ('outcome_variant', 'M1', 'component, excl. 2019 outcomes', 'Excl. 2019 outcomes'),
+             ('robustness', 'M1', 'v1 growth measure (g_v1_L1)', 'v1 growth measure')]
+    cols = {'LR_w': (BLUE, 'o', 'Loss ratio'), 'ER_w': (ORANGE, 's', 'Expense ratio'), 'CR_w': (PURPLE, '^', 'Combined ratio')}
+    f, ax = plt.subplots(figsize=(8, 6)); yt, yl, k = [], [], 0
+    for y, (c, mk, lab) in cols.items():
+        for blk, mod, var, sl in specs:
+            gt = 'g_v1_L1_w' if 'v1 growth' in var else 'g_L1_w'
+            r = M[(M.block == blk) & (M.model == mod) & (M.variant == var) & (M.outcome == y) & (M.term == gt)]
+            if not len(r): continue
+            r = r.iloc[0]; ax.errorbar(10 * r.coef, k, xerr=1.96 * 10 * r.se, fmt=mk, ms=5, color=c, capsize=2, lw=1.2)
+            yt.append(k); yl.append(f'{lab}: {sl}'); k += 1
+        k += .8
+    ax.axvline(0, color=INK, lw=.8); ax.set_yticks(yt); ax.set_yticklabels(yl, fontsize=7.5); ax.invert_yaxis()
+    ax.set_xlabel('Change in the ratio (pp) for +10 pp prior-year premium growth, 95% CI (insurer-clustered, D12)', fontsize=8)
+    ax.grid(axis='x', color='#e5e5e5', lw=.6); ax.set_axisbelow(True)
+    finish(f, 'Figure 4 (v2). Effect of lagged premium growth on underwriting ratios (two-way FE)',
+           'v2 sample 2016-2022, start-ups excluded (171 insurer-years; excl. variants 145). Colour and marker identify the outcome (also in the labels).',
+           FIGURES/'F4_coefficients_v2.png', bottom=.04)
+    # F7: year-specific growth slopes (RQ3 pre-trend model: g_L1 x year, base 2016) with joint tests
+    Tt = pd.read_csv(TABLES/'rq3_tests_v2.csv')
+    f, axs = plt.subplots(1, 3, figsize=(10, 3.9)); yrs = list(range(2017, 2023))
+    for ax, (y, (c, mk, lab)) in zip(axs, cols.items()):
+        d = M[(M.block == 'rq3') & (M.model == 'RQ3_pretrend') & (M.outcome == y) & M.term.isin([f'gx{t}' for t in yrs])].set_index('term')
+        b = [d.loc[f'gx{t}', 'coef'] for t in yrs]; e = [1.96 * d.loc[f'gx{t}', 'se'] for t in yrs]
+        ax.axvspan(2019.5, 2022.5, color='#f0f0f0'); ax.axhline(0, color=INK, lw=.8)
+        ax.errorbar(yrs, b, yerr=e, fmt=mk, color=c, ms=5, capsize=2, lw=1.2); ax.set_xticks(yrs); ax.tick_params(labelsize=7)
+        pt = Tt[(Tt.outcome == y) & Tt.test.str.startswith('pre-trend')].p.iloc[0]
+        jt = Tt[(Tt.outcome == y) & Tt.test.str.contains('joint')].p.iloc[0]; eq = Tt[(Tt.outcome == y) & Tt.test.str.contains('equality')].p.iloc[0]
+        ax.set_title(f'{lab}\npre-trend 2017-19 = 0: p = {pt:.2f}\n2020-22 = 0: p = {jt:.2f}; equal: p = {eq:.2f}', loc='left', fontsize=8)
+        ax.grid(axis='y', color='#e5e5e5', lw=.6); ax.set_axisbelow(True)
+    axs[0].set_ylabel('Extra slope on lagged growth vs 2016\n(pp of ratio per pp of growth), 95% CI', fontsize=8)
+    finish(f, 'Figure 7. Year-specific effect of lagged premium growth relative to 2016 (RQ3; shaded: MID period 2020-22)',
+           'Two-way FE, M1 controls, g_L1 x year interactions (base 2016); tests: cluster-robust Wald, F(q, 27). Joint and equality tests from the model with\n'
+           '2020-22 interactions only (base 2016-19). Wooldridge (2021), Sections 5.2 and 7. v2 sample, 171 insurer-years.',
+           FIGURES/'F7_mid_year_slopes.png', bottom=.1)
+if SEAS.exists():
+    # F8: seasonality of written premium (industry cumulative share by quarter)
+    Z = pd.read_csv(SEAS); I8 = Z[(Z.section == 'industry_cumulative_share') & (Z.statistic == 'premium')].copy()
+    I8['quarter'] = I8.quarter.astype(int); I8['year'] = I8.year.astype(int)
+    f, ax = plt.subplots(figsize=(7, 4.2))
+    for yr, d in I8[I8.year.between(2013, 2023)].groupby('year'): ax.plot(d.quarter, d.value, color='#c9c9c9', lw=1, zorder=1)
+    m = I8[I8.year.between(2015, 2023)].groupby('quarter').value.mean()
+    ax.plot(m.index, m.values, 'o-', color=BLUE, lw=2, ms=6, zorder=3, label='IFRS 4 average 2015-2023 (GWP)')
+    for q, v in m.items():
+        if q < 4: ax.text(q - .06, v + .035, f'{v:.2f}', ha='right', fontsize=8, color=INK)
+    for yr, d in I8[I8.year >= 2024].groupby('year'):
+        ax.plot(d.quarter, d.value, 's--', color=ORANGE, lw=1.4, ms=5, zorder=2, label='IFRS 17, 2024-25 (Insurance Revenue)' if yr == 2024 else None)
+    ax.plot([], [], color='#c9c9c9', lw=1, label='Single years 2013-2023 (GWP)')
+    e8 = Z[(Z.section == 'earning') & (Z.statistic == 'share_of_year_premium_earned_in_same_year')].value.iloc[0]
+    ax.text(3.95, .12, f"Share of a year's premium earned in the same year: {e8:.2f}\n(mid-quarter writing, 12-month policies)", ha='right', fontsize=7.5, color=INK)
+    ax.set_xticks([1, 2, 3, 4]); ax.set_xticklabels(['Q1', 'Q2', 'Q3', 'Q4']); ax.set_ylim(0, 1.05)
+    ax.set_ylabel('Cumulative share of full-year premium'); ax.grid(axis='y', color='#e5e5e5', lw=.6); ax.set_axisbelow(True)
+    ax.legend(frameon=False, fontsize=7.5, loc='upper left')
+    finish(f, 'Figure 8. Seasonality of non-life premium: cumulative share written by quarter',
+           "Insurers with figures in all four quarters, no copy-forward, not a merger year. Source: NIC quarterly returns (an NIC product; insurers'\n"
+           "unaudited quarterly submissions); authors' computation.", FIGURES/'F8_seasonality.png', bottom=.08)
+# F5 (v2): the market growth series is the same in v1 and v2 (audited market totals); re-rendered in the validated palette
+Iv = pd.read_csv(TABLES/'industry_trends.csv'); s = Iv[Iv.year.between(2016, 2023)]
+Pm = pd.read_csv(PROCESSED/'panel_master.csv'); cpi5 = Pm.drop_duplicates('year').set_index('year').cpi_avg_yoy
+real = 100*((1+s.g_mkt/100)/(1+s.year.map(cpi5)/100)-1)
+f, ax = plt.subplots(figsize=(8, 3.8))
+ax.bar(s.year-.21, s.g_mkt, .4, label='Nominal GWP growth', color=BLUE); ax.bar(s.year+.21, real, .4, label='Real (annual-average CPI-deflated)', color=ORANGE)
+ax.axhline(0, color=INK, lw=.8); ax.set_xticks(s.year); ax.set_ylabel('%'); ax.legend(frameon=False, fontsize=8)
+ax.grid(axis='y', color='#e5e5e5', lw=.6); ax.set_axisbelow(True)
+finish(f, 'Figure 5 (v2). Non-life market GWP growth (excl. GOGIP): nominal vs real',
+       'Audited NIC market totals (same series in v1 and v2). Deflator: annual-average CPI inflation, World Bank WDI FP.CPI.TOTL.ZG (orig. GSS).',
+       FIGURES/'F5_nominal_real_growth_v2.png', bottom=.06)
