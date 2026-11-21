@@ -7,7 +7,7 @@ to code or data that moves them is noticed and must be explained.
 import sys, json
 import numpy as np, pandas as pd
 from config import ROOT, INTERIM, PROCESSED, TABLES, MERGERS
-from models import fe
+from models import fe, wcb
 
 fails, notes = [], []
 def check(cond, msg):
@@ -76,6 +76,9 @@ fits = {y: fe(E.dropna(subset=[y] + X1), y, X1) for y in ('LR_w', 'ER_w', 'CR_w'
 ok = all(abs(fits[m.split('|')[0]].params[t] - b0) < 1e-3 * max(1, abs(b0)) and
          abs(fits[m.split('|')[0]].std_errors[t] - se0) < 1e-3 * max(1, se0) for (m, t), (b0, se0) in pins.items())
 check(ok, "models.fe (step 10 helper) reproduces all four pinned results on the full estimation sample")
+# D14: the wild cluster bootstrap's original t must be the two-way FE t (exact within-transformation), every M1 term
+dt = max(abs(wcb(E, y, X1, var=v, B=0)[0] - fits[y].tstats[v]) for y in fits for v in X1)
+check(dt < 1e-8, f"models.wcb original t equals models.fe t for all {len(fits) * len(X1)} M1 terms (max |diff| {dt:.1e})")
 # 5. Deflator: annual-average CPI inflation from the WDI snapshot (descriptive g_real only)
 cpi = P.drop_duplicates('year').set_index('year').cpi_avg_yoy
 miss = [y for y in range(2015, 2024) if pd.isna(cpi.get(y))]

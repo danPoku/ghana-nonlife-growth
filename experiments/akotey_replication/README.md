@@ -159,3 +159,10 @@ Hansen p 0.024 fails diagnostics. MSGR is never significant (p >= 0.29).
   BETTER combined ratio, the opposite direction to the TIMING rule. Lagged growth (B2): +0.064, WCB p 0.60.
 - Same-year effect splits about evenly: LR -0.115 (WCB p 0.059), ER -0.121 (WCB p 0.015). Raw: LR -0.113
   (p 0.038), ER -0.149 (p 0.021). B3 (both together) gives the same picture.
+
+### Update after the bootstrap fix (D14, 21 Nov 2026; added after analysis, sections 1-3 unchanged)
+`models.wcb` now uses the exact two-way within-transformation (docs/methodology_decisions.md, D14). Part B was
+re-run with the same seed and draw order; coefficients and clustered SEs are unchanged, bootstrap p-values change:
+B1 same-year growth -> CR 0.001 -> 0.003; B2 lagged growth -> CR 0.60 -> 0.58; B1 -> LR 0.059 -> 0.075;
+B1 -> ER 0.015 -> 0.015; raw B1 -> LR 0.038 -> 0.058, raw B1 -> ER 0.021 -> 0.016. **The B verdict is unchanged:
+MIXED: authors decide.** Part A (difference GMM) does not use the bootstrap.

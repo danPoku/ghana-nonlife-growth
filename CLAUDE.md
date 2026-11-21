@@ -15,13 +15,13 @@ src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in da
   data_issues A16): robust_gross_basis.csv, industry_trends_gross.csv, er_ret_correlation.csv (not pinned)
 - 05 figures -> outputs/figures
 - 06 facultative appendix (skips if confidential file absent)
-- 07 validation: 36 checks incl. pinned headline coefficients. Must pass before results are used.
+- 07 validation: 37 checks incl. pinned headline coefficients. Must pass before results are used.
   Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
 - 08 System GMM robustness (pydynpd); runs after 07, results not pinned
 - 09 total assets as size control from the confidential quarterly workbook (skips if absent); not pinned
 - 10 leave-one-insurer-out for M1 (growth and size); not pinned
 - 11 NIC printed CR vs LR+ER mismatch analysis (2015-16) -> cr_mismatch_analysis.csv; counts pinned in 07
-Shared code: src/models.py (fe with the D12 SE convention, wcb, twdm) and src/names.py (canonical insurer IDs).
+Shared code: src/models.py (fe with the D12 SE convention, within = exact two-way within-transformation, wcb on it (D14), twdm) and src/names.py (canonical insurer IDs).
 All two-way FE models must use models.fe; never redefine it in a step.
 
 ## Rules
