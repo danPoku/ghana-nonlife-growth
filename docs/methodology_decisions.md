@@ -25,6 +25,7 @@ Status: **proposed**. Each needs author agreement and, where marked, supervisor 
 | D19 | MID as one post-2020 slope change (D6) | g(t-1) x year dummies for 2020, 2021, 2022 with joint and equality tests; pre-trend test on 2017-2019 relative to 2016. See D19 note | Heterogeneous timing (Wooldridge, 2021, Section 5.2); testable common trends (Section 7); 2020 (COVID) can be separated from 2021-22 | Yes |
 | D20 | Convexity via quadratic and piecewise terms only | Adds a Hansen (1999) panel threshold test on g(t-1), with a wild bootstrap under the null (departure from Hansen's residual resampling, which needs a balanced, one-way panel). See D20 note | Lets the data choose the threshold; quadratic and piecewise terms impose its form | No |
 | D21 | Quarterly returns as an early-warning signal ("informative", Exp 2) | Quarterly returns carry no incremental warning value over last year's CR; useful for validation and recalibration only. See D21 note | Pre-registered incremental test (3eef056): DOES NOT ADD INFORMATION | No |
+| D22 | (none) | Cross-sectional dependence in the expense ratio (Pesaran CD p = 0.011, v2) recorded as a limitation; Driscoll-Kraay SEs reported in `appendix_diagnostics.csv` as an indicative check only. See D22 note | Insurer-clustered SEs do not allow for correlation across insurers within a year beyond the common year effects; Driscoll-Kraay does, but needs large T (T = 7, D8) | No |
 
 ## D1 note: size result across size measures (step 09) and leave-one-out (step 10), 31 Oct 2026
 Size -> expense ratio is consistent in direction and magnitude across size measures (ln GWP, ln assets) and in 29 leave-one-out runs (about -9 to -15 per log unit), but its significance is moderate: p = 0.051 clustered / 0.032 bootstrap with ln(assets) (bootstrap p 0.075 after the D14 fix; 0.078 after the D14 addendum); it loses 5% significance without CORONATION or SERENE; the two size measures cannot be separated (within r = 0.88).
@@ -126,6 +127,12 @@ One element changed at a time, M1, two-way FE, clustered SEs (D12), bootstrap p 
 - **2020-correction caveat:** the corrected 2020 CR, used as CR(t-1) for the 2021 test rows, ranks insurers less well (CR(t-1) AUC 0.738 against 0.803), so the CR(t-1) result is sensitive to how the 2020 published ER is treated (A20).
 - **IFRS 17:** the IFRS 4 cut-off (118) flags few insurers under IFRS 17; re-estimated cut-offs are about 103 (published 2023 -> 2024: bootstrap range 86.5 to 2,090.5; workbook 2024 -> 2025: 98.9 to 131.3), on 19-25 insurers. **Recalibration needed; current evidence too thin to set a value.**
 
+## D22 note: cross-sectional dependence (limitation)
+- **Finding.** The Pesaran CD test on the v2 M1 residuals rejects cross-sectional independence for the expense ratio (CD = -2.54, p = 0.011), not for the loss ratio (p = 0.40) or the combined ratio (p = 0.08). In v1 no outcome rejected at 5%, though LR (p = 0.058) and ER (p = 0.054) were close.
+- **Why it matters.** Year fixed effects absorb shocks common to all insurers; dependence beyond them (insurers moving together in ways the year effect does not capture, e.g. groups of insurers sharing reinsurers or distribution channels) is not allowed for by insurer-clustered SEs, so the ER standard errors may be understated or overstated.
+- **Indicative check.** Driscoll-Kraay SEs (Bartlett kernel, bandwidth 2) allow for cross-sectional and serial dependence, but their small-sample behaviour with T = 7 is poor (D8), so they are reported in `appendix_diagnostics.csv` as an indicative check only, not as headline inference. For M1 (v2) no term is significant under Driscoll-Kraay SEs either: growth -> ER -0.004 (DK SE 0.025, p = 0.88), growth -> CR +0.016 (DK SE 0.045, p = 0.72), size -> ER +3.5 (DK SE 7.0, p = 0.61). The conclusions do not change.
+- **Write-up.** State it as a limitation of the expense-ratio inference; headline inference stays insurer-clustered SEs plus the wild cluster bootstrap.
+
 ## v1 headline results (superseded by v2; kept for the record) (updated 31 Oct 2026 for D12 and D13; bootstrap p-values 21 Nov 2026 for D14)
 - Lagged growth -> CR: +0.055 pp per 1 pp (SE 0.088); +10 pp growth CI [-1.2, +2.3] pp. Not significant (WCB p = 0.65; 0.67 before D14).
 - No evidence of convexity (quadratic or piecewise) under clustered SEs or WCB.
@@ -183,4 +190,4 @@ The step runs after 07_validate.py and its results are **not pinned**.
 - **MID (RQ3):** no year-specific change in the growth slope on CR (joint p = 0.84); 2020 not different from 2021-22 (p = 0.82); no clear pre-trend.
 - **Reverse regression:** no support for "weak insurers shrink" (CR(t-1) -> g(t) +0.09, p = 0.44).
 - **Expenses dominate:** component-based ER is 70-99% of NEP + RIC against LR 30-50% (Figure 2, v2).
-- **Diagnostics (v2):** Hausman and Mundlak tests do not reject; heteroskedasticity; serial correlation not significant for LR, ER (CR p = 0.08); cross-sectional dependence significant for ER (Pesaran p = 0.011).
+- **Diagnostics (v2):** Hausman and Mundlak tests do not reject; heteroskedasticity; serial correlation not significant for LR, ER (CR p = 0.08); cross-sectional dependence significant for ER (Pesaran p = 0.011; limitation, D22; Driscoll-Kraay as an indicative check changes nothing).

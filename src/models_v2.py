@@ -250,6 +250,14 @@ def run():
     pd.DataFrame([dict(outcome=y, **diagnostics(B, y, specs['M1'])) for y in ['LR_w', 'ER_w', 'CR_w']]).to_csv(
         TABLES / 'diagnostics_v2.csv', index=False)
     anderson_hsiao(E).to_csv(TABLES / 'anderson_hsiao_v2.csv', index=False)
+    # Driscoll-Kraay SEs for M1 (Bartlett kernel, bandwidth 2, as v1): INDICATIVE ONLY. They allow for cross-sectional
+    # dependence (Pesaran CD significant for ER, D22) but need large T, and T = 7 here (D8).
+    dk = []
+    for y in ['LR_w', 'ER_w', 'CR_w']:
+        r = fe(B.dropna(subset=[y] + specs['M1']), y, specs['M1'], cov='dk')
+        dk += [dict(outcome=y, term=t, coef=float(r.params[t]), se=float(r.std_errors[t]), p=float(r.pvalues[t]), n=int(r.nobs))
+               for t in specs['M1']]
+    pd.DataFrame(dk).to_csv(TABLES / 'driscoll_kraay_v2.csv', index=False)
     # ---------- v1 -> v2 bridge: change one element at a time (M1) ----------
     def m1(D0, lr, er, gcol, size, additive):
         D = D0.dropna(subset=[lr, er, gcol, 'RET', size, 'LEV_net_L1']).copy()

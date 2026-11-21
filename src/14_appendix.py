@@ -10,7 +10,7 @@ from config import TABLES, ROOT
 
 need = ['main_models_v2.csv', 'rq3_tests_v2.csv', 'diagnostics_v2.csv', 'cre_mundlak_v2.csv', 'system_gmm_v2.csv',
         'system_gmm_diagnostics_v2.csv', 'anderson_hsiao_v2.csv', 'robust_leave_one_out_summary_v2.csv', 'threshold_v2.csv',
-        'seasonality.csv', 'returns_concordance.csv']
+        'seasonality.csv', 'returns_concordance.csv', 'driscoll_kraay_v2.csv']
 miss = [f for f in need if not (TABLES / f).exists()]
 if miss:
     print(f'Step 14 skipped: v2 tables absent ({", ".join(miss)}); the public pipeline reproduces v1 only.'); sys.exit(0)
@@ -40,8 +40,11 @@ for _, r in dg.iterrows():
              dict(outcome=r.outcome, test='Wooldridge serial correlation (FD residuals)', statistic=r.wooldridge_F, df='1, G-1', p=r.wooldridge_p),
              dict(outcome=r.outcome, test='Modified Wald groupwise heteroskedasticity', statistic=r.modwald_chi2, df='', p=r.modwald_p),
              dict(outcome=r.outcome, test='Pesaran CD cross-sectional dependence', statistic=r.pesaran_CD, df='', p=r.pesaran_p)]
-out['appendix_diagnostics.csv'] = (pd.DataFrame(rows).assign(n=int(dg.n.iloc[0])),
-                                   'M1 (v2) on the v2 sample (171 insurer-years); the Mundlak test replaces the classical Hausman test as the reported FE-vs-RE test.')
+dk = rd('driscoll_kraay_v2.csv').assign(test='Driscoll-Kraay SE (Bartlett, bandwidth 2): INDICATIVE ONLY',
+                                       row_note='allows for cross-sectional dependence (Pesaran CD significant for ER) but needs large T; T = 7 (D8, D22)')
+out['appendix_diagnostics.csv'] = (pd.concat([pd.DataFrame(rows).assign(n=int(dg.n.iloc[0])), dk], ignore_index=True),
+                                   'M1 (v2) on the v2 sample (171 insurer-years); the Mundlak test replaces the classical Hausman test as the reported FE-vs-RE test; '
+                                   'Driscoll-Kraay rows (term, coef, se, p) are an indicative check only.')
 
 # 3. GMM and Anderson-Hsiao (v2)
 gm = rd('system_gmm_v2.csv').merge(rd('system_gmm_diagnostics_v2.csv').drop(columns=['command']), on=['variant', 'outcome'])
