@@ -160,3 +160,87 @@ Further amendments:
 - But Q2 YTD CR minus audited CR(t-1), paired rows (n 146): -0.073, 95% CI [-0.142, -0.003].
   **The CI excludes 0: on the same rows, last year's audited CR ranks insurers better than the Q2
   return does.**
+
+## 5. v2 additions (Part 4 of the methodology revision): pre-registration, 21 Nov 2026
+
+**Written BEFORE any analysis in this section was run.** Data inspected beforehand: column names and non-missing
+counts only. Rows available: training t = 2016-2020, 121 insurer-years with the target, 107 also with CR(t-1), both Q2
+returns passing the checks in 4b and Q4(t-1) concordance; test t = 2021-2022, 52 and 48. No red-zone rate, outcome
+value or AUC from the v2 data was looked at. Results already known before writing are those in section 4 (v1 data).
+Sections 1-4 are unchanged.
+
+The NIC quarterly returns workbook is an NIC product (source confirmed); its figures are insurers' unaudited quarterly
+submissions. Insurer-level outputs stay in `outputs/confidential/` (git-ignored).
+
+### 5.1 Common to 4a-4e
+- **Data:** the v2 analysis panel (`data/processed/confidential/panel_v2.csv`) and quarterly returns panel
+  (`returns_quarterly.csv`), as built by pipeline steps 12 and 03 at the commit that adds this section.
+- **Target (primary):** red(t) = 1 if CR(t) > 110, where CR is the audited Tier 1 combined ratio with the two v2
+  corrections: 2015-16 ER := CR_nic - LR (data_issues A16, A19) and 2020 ER replaced by the returns-based ER where the
+  published value omits commission (A20) (`CR_corr2020`). The test-year targets (2021-2022) are untouched by either
+  correction, so the decision rule is applied to purely audited outcomes.
+- **Target (sensitivity, reported, not decisive):** `CR_t1`, audited with only the 2015-16 correction, so no
+  returns-derived value enters the target anywhere.
+- **Rows:** t = 2016-2022; neither t nor t-1 a start-up year. Training t = 2016-2020, test t = 2021-2022; nothing is
+  fitted or chosen on test years. IFRS 4 only (2023 audited values are IFRS 17).
+- **CR(t-1)** is on the same basis as the target.
+- **Bootstrap:** every interval resamples INSURERS with replacement (all rows of a drawn insurer kept): 1,999 resamples,
+  seed 1, percentile 95% CI; a resample with only one class is redrawn and the number redrawn is reported; paired
+  differences use the same resamples for both scores. (This was already the rule for every interval in sections 3-4.)
+- **AUC:** Mann-Whitney, ties counted as 0.5.
+
+### 4a. Paired AUC difference: CR(t-1) vs premium growth
+- Score A = CR(t-1). Score B = premium growth g(t-1), v2 single measure, direction fixed by its training AUC (as in
+  Exp 1). Test rows complete on both. Report AUC(A), AUC(B) and AUC(A) - AUC(B) with the paired CI.
+- Growth's AUC is reported under BOTH growth measures on the same test rows: the v2 single measure (Score B, which the
+  reading below uses) and the v1 measure (`g_v1`, lagged), each with its CI and its paired difference from AUC(A).
+- Reading: "growth carries less warning value than CR(t-1)" only if the paired CI lies wholly above 0; otherwise "no
+  detectable difference".
+- Also reported on the Exp 1 (v1) data, published CR and v1 growth, for direct comparison with section 4.
+
+### 4b. Quarterly indicators (same quarter, year on year)
+- Q2 YTD CR(t): component-based claims ratio + expense ratio on the NEP + RIC basis from the Q2 return of year t.
+- **dQ2CR(t)** = Q2 YTD CR(t) - Q2 YTD CR(t-1). **gQ2(t)** = 100 x (Q2 YTD GWP(t) / Q2 YTD GWP(t-1) - 1).
+- Never across the IFRS 17 boundary (t <= 2023; the test window ends in 2022).
+- **Quality checks; BOTH Q2 returns (t and t-1) must pass:** (i) the row has figures; (ii) it is not a copy of the
+  insurer's Q1 return; (iii) NEP + RIC, claims, management and commission are present, so the CR is computable;
+  (iv) Q2 YTD GWP > 0 and not below Q1 YTD GWP. In addition (v) the Q4 return of t-1 passes concordance with audited
+  GWP (known by Q2 of year t). No check uses information from after Q2 of year t. Merger years (t or t-1) are
+  excluded for gQ2.
+- **Expected directions, fixed here:** dQ2CR higher = riskier (a worsening Q2 combined ratio against the same quarter
+  a year earlier); its AUC is computed in that direction, with no training-based reorientation. gQ2 has **no
+  pre-specified direction** (two-sided, consistent with RQ2): its AUC is computed with higher growth = riskier and read
+  two-sidedly (CI wholly above 0.5: faster growth signals higher risk; wholly below 0.5: lower risk; otherwise no
+  detectable signal). For its flag metrics only, the direction is set by the training AUC.
+- Report test AUC with CI for dQ2CR and gQ2, and flag metrics at the training Youden cut-off.
+
+### 4c. Incremental test (decision rule fixed here)
+- Model A: logistic on CR(t-1). Model B: logistic on CR(t-1) + dQ2CR(t). Same estimator as the Exp 1 composite
+  (inputs winsorised at the training 1st/99th percentiles, standardised with training mean and SD, L2 penalty lambda = 1
+  on the slopes, intercept free, no tuning). Fitted on training rows, scored on test rows.
+- **Comparison rows:** the rows meeting model B's data requirements (complete on CR(t-1) and dQ2CR, both Q2 returns
+  passing 4b), in training and in test. Model A is fitted and its test AUC computed on that SAME restricted set; it is
+  not Experiment 1's full-set AUC of CR(t-1).
+- **Rule:** dQ2CR **ADDS INFORMATION** only if test AUC(B) - AUC(A) >= 0.03 AND the paired 95% CI excludes 0 (lower
+  bound > 0). Otherwise **DOES NOT ADD INFORMATION**. Point estimate and CI are reported either way.
+- Secondary, not decisive: Model C = Model B + gQ2(t); all models on the sensitivity target.
+- About 48 test rows: power is low, and a "does not add" result is not evidence of no effect.
+
+### 4d. Exploratory: non-submission
+- Indicator: quarters of year t-1 without figures (0-4), higher = riskier (fixed here). Test AUC with CI; flag
+  metrics at ">= 1 quarter missing". No decision rule.
+
+### 4e. Recalibration demonstration under IFRS 17 (descriptive, not a test)
+- Data: (i) published IFRS 17 CR for 2023 and 2024 (NIC 2024 Annual Report); (ii) workbook Q4 IFRS 17 CR (printed
+  claims ratio + expense ratio, units detected) for 2024 and 2025, rows with figures and not a copy-forward; for 2024
+  the Q4 Insurance Revenue must be within max(5%, GHS 0.5m) of the NIC 2024 Insurance Revenue (2025 cannot be checked).
+- Show: CR distribution (median, p75, share > 110) by year on each basis next to IFRS 4 2021-2022; the share flagged
+  by the IFRS 4 rules (CR(t-1) > 110 and the 2016-2020 Youden cut-off) applied to IFRS 17 CR; the Youden cut-off and
+  AUC re-estimated on the IFRS 17 pairs (2023 -> 2024 published; 2024 -> 2025 workbook), with insurer-bootstrap CIs.
+  No verdict.
+
+### 5.2 Outputs and deviations
+- Script `exp3_v2_additions.py`, written after this section is committed. Aggregate outputs:
+  `outputs/exp3_results.csv`, `outputs/exp3_ifrs17.csv`; insurer-level in `outputs/confidential/`.
+- Anything changed during analysis is recorded, with its reason, in a section 6 "Deviations and results (v2
+  additions)"; sections 1-5 stay unchanged after the commit that section 6 names.
