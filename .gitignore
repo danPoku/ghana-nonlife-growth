@@ -24,3 +24,6 @@ data/raw/quarterly/
 
 # Outputs derived from the confidential quarterly returns workbook (step 09)
 data/processed/confidential/
+
+# Early-warning experiment: insurer-level outputs derived from the confidential workbook
+experiments/early_warning/outputs/confidential/
