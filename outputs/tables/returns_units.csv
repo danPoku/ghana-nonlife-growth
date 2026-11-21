@@ -1,0 +1,135 @@
+sheet,column,n,median_abs,unit
+Q1 2014,ER_wb,23,65.86,percent
+Q1 2014,LR_wb,23,35.41,percent
+Q1 2021,ER_wb,24,62.83775883242053,percent
+Q1 2021,LR_wb,22,32.51209608473786,percent
+Q1 2022,ER_wb,25,66.98,percent
+Q1 2022,LR_wb,25,21.49,percent
+Q1 2023,ER_wb,22,70.52,percent
+Q1 2023,LR_wb,22,24.225,percent
+Q1 2024,i17_ER_wb,21,0.652848237753954,fraction (x100)
+Q1 2024,i17_LR_wb,21,0.234484151934806,fraction (x100)
+Q1 2024,i17_attrib_ER_wb,19,0.255345310243752,fraction (x100)
+Q1 2024,i17_nonattrib_ER_wb,21,0.350135558281903,fraction (x100)
+Q1 2024,i17_tech_margin_wb,21,0.5614885666273,fraction (x100)
+Q1 2025,i17_ER_wb,22,0.6672921361797055,fraction (x100)
+Q1 2025,i17_LR_wb,22,0.24200217504339,fraction (x100)
+Q1 2025,i17_attrib_ER_wb,22,0.23943729613979298,fraction (x100)
+Q1 2025,i17_nonattrib_ER_wb,22,0.40063125506959696,fraction (x100)
+Q1 2025,i17_tech_margin_wb,22,0.49818832882783803,fraction (x100)
+Q1 2026,i17_ER_wb,22,0.6820813990188033,fraction (x100)
+Q1 2026,i17_LR_wb,22,0.27868073429849727,fraction (x100)
+Q1 2026,i17_attrib_ER_wb,22,0.47550970455292624,fraction (x100)
+Q1 2026,i17_nonattrib_ER_wb,22,0.27779556549449713,fraction (x100)
+Q1 2026,i17_tech_margin_wb,22,0.27621757058903,fraction (x100)
+"Q1, 2013",ER_wb,21,72.2,percent
+"Q1, 2013",LR_wb,22,32.535,percent
+"Q1, 2015",ER_wb,25,86.03,percent
+"Q1, 2015",LR_wb,25,33.21,percent
+"Q1, 2016",ER_wb,22,69.05000000000001,percent
+"Q1, 2016",LR_wb,22,31.235,percent
+"Q1, 2017",ER_wb,21,85.16,percent
+"Q1, 2017",LR_wb,21,43.1,percent
+"Q1, 2018",ER_wb,25,77.87,percent
+"Q1, 2018",LR_wb,25,30.0,percent
+"Q1, 2019",ER_wb,29,73.33,percent
+"Q1, 2019",LR_wb,29,33.94,percent
+"Q1, 2020",CR_wb,27,95.58250996538027,percent
+"Q1, 2020",ER_wb,27,62.438321973696844,percent
+"Q1, 2020",LR_wb,27,28.281647596458555,percent
+Q2 2021,ER_wb,26,63.065,percent
+Q2 2021,LR_wb,26,29.27,percent
+Q2 2022,ER_wb,24,30.46,percent
+Q2 2022,LR_wb,24,30.46,percent
+Q2 2023,ER_wb,25,72.98,percent
+Q2 2023,LR_wb,25,24.5,percent
+Q2 2024,i17_ER_wb,21,0.619748014395674,fraction (x100)
+Q2 2024,i17_LR_wb,21,0.262746560346173,fraction (x100)
+Q2 2024,i17_attrib_ER_wb,19,0.249543686326911,fraction (x100)
+Q2 2024,i17_nonattrib_ER_wb,21,0.297683142439089,fraction (x100)
+Q2 2024,i17_tech_margin_wb,21,0.485369039758673,fraction (x100)
+Q2 2025,i17_ER_wb,21,0.708582133309186,fraction (x100)
+Q2 2025,i17_LR_wb,21,0.271743273452036,fraction (x100)
+Q2 2025,i17_attrib_ER_wb,21,0.305237187873272,fraction (x100)
+Q2 2025,i17_nonattrib_ER_wb,21,0.358398314749157,fraction (x100)
+Q2 2025,i17_tech_margin_wb,21,0.434661728471142,fraction (x100)
+"Q2, 2013",ER_wb,23,69.29,percent
+"Q2, 2013",LR_wb,23,30.83,percent
+"Q2, 2014",ER_wb,24,76.16,percent
+"Q2, 2014",LR_wb,24,33.9,percent
+"Q2, 2015",ER_wb,23,76.92,percent
+"Q2, 2015",LR_wb,23,38.08,percent
+"Q2, 2016",ER_wb,25,80.22,percent
+"Q2, 2016",LR_wb,25,34.99,percent
+"Q2, 2017",ER_wb,23,83.08,percent
+"Q2, 2017",LR_wb,23,38.97,percent
+"Q2, 2020",ER_wb,29,66.11004023828909,percent
+"Q2, 2020",LR_wb,29,30.142987010841903,percent
+"Q2,2018",ER_wb,27,82.67,percent
+"Q2,2018",LR_wb,27,32.39,percent
+"Q2,2019",ER_wb,27,88.87,percent
+"Q2,2019",LR_wb,27,34.43,percent
+Q3 2020,ER_wb,27,69.77433631851775,percent
+Q3 2020,LR_wb,27,30.06318599161072,percent
+Q3 2021,ER_wb,25,62.82,percent
+Q3 2021,LR_wb,25,30.11,percent
+Q3 2022,ER_wb,25,72.97,percent
+Q3 2022,LR_wb,25,32.35,percent
+Q3 2023,ER_wb,25,73.24,percent
+Q3 2023,LR_wb,25,27.73,percent
+Q3 2024,i17_ER_wb,23,0.671909958434397,fraction (x100)
+Q3 2024,i17_LR_wb,23,0.237541019470575,fraction (x100)
+Q3 2024,i17_attrib_ER_wb,21,0.231719767993264,fraction (x100)
+Q3 2024,i17_nonattrib_ER_wb,23,0.342630392137805,fraction (x100)
+Q3 2024,i17_tech_margin_wb,23,0.447558629231696,fraction (x100)
+Q3 2025,i17_ER_wb,25,0.683254278246281,fraction (x100)
+Q3 2025,i17_LR_wb,25,0.25703972950129766,fraction (x100)
+Q3 2025,i17_attrib_ER_wb,25,0.5180952240581741,fraction (x100)
+Q3 2025,i17_nonattrib_ER_wb,25,0.2486599555871276,fraction (x100)
+Q3 2025,i17_tech_margin_wb,25,0.22986621751512973,fraction (x100)
+"Q3, 2013",ER_wb,25,77.11,percent
+"Q3, 2013",LR_wb,25,33.18,percent
+"Q3, 2014",ER_wb,25,81.84,percent
+"Q3, 2014",LR_wb,25,36.47,percent
+"Q3, 2015",ER_wb,23,79.66,percent
+"Q3, 2015",LR_wb,23,50.96,percent
+"Q3, 2016",ER_wb,24,77.6,percent
+"Q3, 2016",LR_wb,24,34.465,percent
+"Q3, 2017",ER_wb,25,79.44,percent
+"Q3, 2017",LR_wb,25,40.77,percent
+"Q3,2018",ER_wb,28,85.64,percent
+"Q3,2018",LR_wb,28,36.599999999999994,percent
+"Q3,2019",ER_wb,29,85.39,percent
+"Q3,2019",LR_wb,29,32.39,percent
+Q4 2020,ER_wb,28,71.62417994087951,percent
+Q4 2020,LR_wb,28,27.832306401013405,percent
+Q4 2021,ER_wb,26,69.275,percent
+Q4 2021,LR_wb,26,26.415,percent
+Q4 2022,ER_wb,26,75.69,percent
+Q4 2022,LR_wb,26,30.525,percent
+Q4 2023,ER_wb,26,75.94,percent
+Q4 2023,LR_wb,26,23.47,percent
+Q4 2024,i17_ER_wb,24,0.742551204096196,fraction (x100)
+Q4 2024,i17_LR_wb,24,0.2380149466426165,fraction (x100)
+Q4 2024,i17_attrib_ER_wb,24,0.2558389313554875,fraction (x100)
+Q4 2024,i17_nonattrib_ER_wb,24,0.433377468976962,fraction (x100)
+Q4 2024,i17_tech_margin_wb,24,0.447708378423719,fraction (x100)
+Q4 2025,i17_ER_wb,24,0.6281117273885927,fraction (x100)
+Q4 2025,i17_LR_wb,24,0.2957971425723012,fraction (x100)
+Q4 2025,i17_attrib_ER_wb,24,0.5581087752421021,fraction (x100)
+Q4 2025,i17_nonattrib_ER_wb,24,0.25528585059210046,fraction (x100)
+Q4 2025,i17_tech_margin_wb,24,0.22994828279412133,fraction (x100)
+"Q4, 2013",ER_wb,24,77.92,percent
+"Q4, 2013",LR_wb,24,31.04,percent
+"Q4, 2015",ER_wb,24,83.845,percent
+"Q4, 2015",LR_wb,24,39.849999999999994,percent
+"Q4, 2016",ER_wb,24,83.37,percent
+"Q4, 2016",LR_wb,24,35.33,percent
+"Q4, 2017",ER_wb,27,79.93,percent
+"Q4, 2017",LR_wb,27,39.0,percent
+"Q4, 2018",ER_wb,28,88.21000000000001,percent
+"Q4, 2018",LR_wb,28,35.03,percent
+"Q4, 2019",ER_wb,29,0.9048930621774085,fraction (x100)
+"Q4, 2019",LR_wb,29,0.32983563814417666,fraction (x100)
+"Q4,2014",ER_wb,22,89.35,percent
+"Q4,2014",LR_wb,22,33.3,percent

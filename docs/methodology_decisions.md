@@ -4,7 +4,7 @@ Status: **proposed**. Each needs author agreement and, where marked, supervisor 
 
 | # | Defence version | Proposed | Reason | Sign-off? |
 |---|---|---|---|---|
-| D1 | Size control ln(total assets) | ln(GWP, t-1) in the main models; ln(total assets, t-1) from the confidential quarterly returns workbook (A15) as a robustness check (step 09) | Per-insurer assets not published (A10); the workbook is unaudited and its source unconfirmed, so assets stay out of the main analysis | Yes |
+| D1 | Size control ln(total assets) | ln(GWP, t-1) in the main models; ln(total assets, t-1) from the NIC quarterly returns workbook (A15) as a robustness check (step 09) | Per-insurer assets not published (A10); the workbook (an NIC product, source confirmed 21 Nov 2026) holds insurers' unaudited quarterly submissions, so assets stayed out of the v1 main analysis | Yes |
 | D2 | No leverage control | Net insurance risk ratio (NWP / equity), t-1 | Classic premium-to-surplus underwriting risk measure; published by NIC | Yes |
 | D3 | Growth and market-share growth in one equation | Separate models (M1 vs M4) | With year FE, market-share growth ~ premium growth (within-corr 0.61) | Yes |
 | D4 | Winsorising in sensitivity only | Exclude start-up years + winsorise 1/99 in main; raw as sensitivity | Single start-up obs at 10,950% would dominate OLS (A11) | Yes |
@@ -30,7 +30,7 @@ Size -> expense ratio is consistent in direction and magnitude across size measu
 
 ## D13 note: merger rule (added 31 Oct 2026)
 - **Rule.** `MERGERS` in src/config.py lists each merger (insurer, first year of the combined entity, absorbed entity, source). In that year `g`, `g_excess`, `g_real`, `g_real_dec` and `d_ms` are missing and `g_source` = "not computed: merger year"; the `_L1` lags follow. The rule is applied before the year median for `g_excess` is taken. Entries: RegencyNem 2016 (NEM absorbed), SAHAM_SANLAM 2024 (Allianz absorbed; growth was already missing as 2024 is Insurance Revenue).
-- **Why missing, not pro-forma.** RegencyNem's 2016 growth was +61.4% as published but about +3.0% against Regency + NEM combined. The NEM 2015 figure comes only from an unaudited quarterly returns workbook (data_issues A15), so it is kept out of the main analysis.
+- **Why missing, not pro-forma.** RegencyNem's 2016 growth was +61.4% as published but about +3.0% against Regency + NEM combined. The NEM 2015 figure comes only from the NIC quarterly returns workbook, i.e. NEM's unaudited quarterly submission (data_issues A15), so it is kept out of the main analysis.
 - **Effect.** Estimation sample 177 -> 176 (RegencyNem 2017 drops: its lagged growth is now missing). Winsorising bounds are recomputed on the 176 rows, which moves 4 clipped values per variable. Lagged growth -> LR / ER / CR: +0.0225 / +0.0303 / +0.0461 -> +0.0261 / +0.0324 / +0.0547 (WCB p 0.79 / 0.51 / 0.72 -> 0.75 / 0.48 / 0.67). No TWFE coefficient changes significance at 5%. M3 threshold (p75 of excess growth) 9.957 -> 9.926 pp. M4 sample 153 -> 152. Anderson-Hsiao n 121 -> 120, growth p-values essentially unchanged. System GMM n 144 -> 142; CR with GMM lags 2-4 moves from p = 0.57 to p = 0.083 (+0.196), so that variant is sensitive to a single insurer.
 - **Pins** in 07_validate.py updated (see the comment there); 30 checks.
 

@@ -14,14 +14,20 @@ python -m venv .venv
 # Windows:  .venv\Scripts\activate      macOS/Linux:  source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2. Run everything (about 20 seconds)
-python run_all.py            # resume from a step with: python run_all.py --from 4
+# 2. Run everything (about 2 minutes)
+python run_all.py            # resume at a script number: python run_all.py --from 4
 
 # 3. Optional: R replication + System GMM (needs R 4.x)
 Rscript R/twfe_and_system_gmm.R
 ```
 
-The run ends with **26 validation checks**. All must pass before results are used.
+The run ends with **39 validation checks** (37 plus a SKIP line when the NIC quarterly returns workbook is absent).
+All must pass before results are used.
+
+**v2 headline results require the NIC quarterly returns workbook** (an NIC product; the figures are insurers'
+unaudited quarterly submissions), which is not in the repository. Without it, steps 9 and 12 are skipped and the
+public pipeline reproduces the **v1 (Tier 1, audited NIC annual reports) results only**. The v1 state is tagged
+`v1-methodology`.
 
 ## Pipeline
 
@@ -29,14 +35,16 @@ The run ends with **26 validation checks**. All must pass before results are use
 |---|---|---|
 | 1 | `src/01_extract_nic.py` | Verifies raw-file checksums; parses all table blocks → `data/interim/blocks.json` |
 | 2 | `src/02_build_long.py` | Validated variable mapping, canonical insurer IDs → `data/interim/nic_long_all_vintages.csv` (every value with report, table and line) |
+| 12 | `src/12_returns_panel.py` | Returns panel (Tier 2) from the NIC quarterly returns workbook (skipped if absent): insurer-level → `data/processed/confidential/` (git-ignored); concordance, seasonality, survivorship, non-submission → `outputs/tables/returns_*.csv`, `seasonality.csv`. Runs before step 3 |
 | 3 | `src/03_build_panel.py` | Insurer-year panel → `data/processed/panel_master.csv` |
-| 4 | `src/04_analysis.py` | Descriptives, TWFE models, diagnostics, wild cluster bootstrap, dynamic check → `outputs/tables/` |
+| 4 | `src/04_analysis.py` | Descriptives, TWFE models, diagnostics, wild cluster bootstrap, dynamic check, gross-basis robustness → `outputs/tables/` |
 | 5 | `src/05_figures.py` | Figures 1–5 → `outputs/figures/` |
 | 6 | `src/06_facultative.py` | Supplementary facultative-reinsurance appendix (skipped if confidential file absent) |
 | 7 | `src/07_validate.py` | Data-fidelity and pinned-result checks |
 | 8 | `src/08_system_gmm.py` | System GMM robustness (pydynpd) → `outputs/tables/system_gmm*.csv` |
-| 9 | `src/09_total_assets.py` | Total assets as size control, from the confidential quarterly returns workbook (skipped if absent) → `outputs/tables/robust_total_assets*.csv` |
+| 9 | `src/09_total_assets.py` | Total assets as size control, from the NIC quarterly returns workbook (skipped if absent) → `outputs/tables/robust_total_assets*.csv` |
 | 10 | `src/10_leave_one_out.py` | Leave-one-insurer-out re-estimation of M1 → `outputs/tables/robust_leave_one_out*.csv`, Figure 6 |
+| 11 | `src/11_cr_mismatch.py` | NIC printed CR vs LR + ER, 2015-16 → `outputs/tables/cr_mismatch_analysis.csv` |
 | R | `R/twfe_and_system_gmm.R` | TWFE replication + System GMM → `outputs/tables/R_results.txt` |
 
 ## Data
@@ -52,6 +60,10 @@ The run ends with **26 validation checks**. All must pass before results are use
   (Ghana annual-average CPI inflation, orig. GSS), used to deflate premium growth (`g_real`, Figure 5).
   The pipeline reads only the snapshot, so it runs offline and is reproducible. To refresh it, run
   `python src/00_fetch_macro.py` (not part of `run_all.py`), then rerun the pipeline.
+- `data/raw/quarterly/` — NIC quarterly returns workbook (Q1 2013 – Q1 2026): an NIC product (source confirmed);
+  the figures are insurers' unaudited quarterly submissions. **Not in git** (publication of insurer-level values not
+  cleared); copy it in manually to run steps 9 and 12. Insurer-level outputs derived from it go to
+  `data/processed/confidential/` (git-ignored); only aggregate tables are committed.
 
 ## Documentation
 

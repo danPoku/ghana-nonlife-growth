@@ -26,7 +26,8 @@ CHECKSUMS = {
 
 PRODUCTION_FILE = RAW_PROD / "Production_Report_for_2025-05-08_10_32_51.xlsx"
 
-# NIC quarterly returns workbook: unaudited, practitioner-supplied, CONFIDENTIAL (data_issues A15). Git-ignored.
+# NIC quarterly returns workbook: an NIC product (source confirmed); figures are insurers' unaudited quarterly
+# submissions (data_issues A15, A17). Git-ignored: publication not cleared.
 QUARTERLY_FILE = ROOT / "data" / "raw" / "quarterly" / "MARKET_REPORT_2025_QUARTER_1_2026_NON_LIFE_1_196263973d_6dc3659b1d.xlsx"
 CONFIDENTIAL = ROOT / "data" / "processed" / "confidential"   # outputs derived from QUARTERLY_FILE; git-ignored
 

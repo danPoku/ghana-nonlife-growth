@@ -75,4 +75,36 @@ Robustness variable (step 09 only; not in panel_master.csv or estimation_sample.
 
 | Variable | Non-missing | Description |
 |---|---|---|
-| `ln_assets_L1` | 172 of 176 estimation rows | ln(total assets at 31 Dec of t-1), from the Q4 sheets of the confidential NIC quarterly returns workbook (A15), kept only where the workbook's Q4 GWP passes the concordance check against audited annual GWP. Insurer-level values are in the git-ignored `data/processed/confidential/total_assets_q4.csv` |
+| `ln_assets_L1` | 172 of 176 estimation rows | ln(total assets at 31 Dec of t-1), from the Q4 sheets of the NIC quarterly returns workbook (an NIC product; insurers' unaudited submissions; A15, A17), kept only where the workbook's Q4 GWP passes the concordance check against audited annual GWP. Insurer-level values are in the git-ignored `data/processed/confidential/total_assets_q4.csv` |
+
+## Returns panel (Tier 2, step 12): data/processed/confidential/returns_panel.csv
+
+Source: the NIC quarterly returns workbook (an NIC product, source confirmed; the figures are insurers' unaudited quarterly submissions; data_issues A15, A17-A19). Git-ignored: insurer-level values are not published (decision A2). Aggregate tables: `outputs/tables/returns_*.csv`, `seasonality.csv`.
+339 rows. Ratios in percent. `returns_quarterly.csv` holds every quarter (Q1 2013 - Q1 2026) with the same variables on a year-to-date basis, plus `quarter`, `sheet`, `era` (ifrs4 / ifrs17), `er_wb_defective_sheet` and quarterly increments `<flow>_inc` (Qq - Qq-1 of the same insurer-year; Q1 = year-to-date).
+
+| Variable | Non-missing | Definition |
+|---|---|---|
+| `insurer_id, year` | 339 | Canonical ID (src/names.py, aliases in src/returns_io.py) and financial year; one row per insurer-year with a Q4 row (2013-2025) or a Tier 1 row (2015-2023) |
+| `in_tier1, has_q4_row, has_figures` | 339 | In the audited panel; has a Q4 workbook row; that row has at least one money figure (derived columns such as market share do not count) |
+| `flag_copy_forward` | 338 | Q4 identical to Q3 on every shared money column (>= 3 values); concordance decides whether it is stale |
+| `merger_year` | 338 | First year of a combined entity (MERGERS in src/config.py, D13) |
+| `concordance` | 339 | pass if |Q4 GWP - audited GWP| <= max(5%, GHS 0.5m) (2015-2023); else fail / no Q4 row / Q4 row without figures / not checked (2013-14: no audited GWP; 2024+: IFRS 17) |
+| `gwp_rel_diff` | 237 | |Q4 GWP - audited GWP| / audited GWP |
+| `annual_source` | 339 | returns (concordance pass) / filled from annual (Q4 failed or missing: annual columns from Tier 1, components missing) / filled from annual (components incomplete) / returns (not checked: 2013-14) / IFRS 17 (i17_ columns only) / returns only (not in Tier 1) |
+| `n_quarters_no_figures` | 338 | Quarters of the year (0-4) without figures, over insurer-years with figures in any quarter or in Tier 1 |
+| `gwp, nwp, claims, gross_claims, mgmt, comm, ric, tp, total_assets, motor_gwp` | 282 | Workbook Q4 (year-to-date = annual) amounts, GHS: gross written premium, net written premium, net claims incurred, gross claims incurred (Q4 2019+), management expenses, commission expense, reinsurance commission income (blank = missing, never zero), technical provisions (2021+), total assets, motor gross premium (2021-23). Header variants: data_issues A17 |
+| `NEP, nep_source` | 276 | Net earned premium: the workbook column (2021+), else implied = claims / (LR_wb / 100); not recoverable if claims <= 0 or LR_wb missing or <= 0. NOTE (A17): the implied value is NEP + RIC, the column is NEP alone (basis pending decision) |
+| `LR_c` | 276 | 100 x claims / NEP. Before 2021 it equals LR_wb by construction |
+| `ER_c` | 276 | 100 x (mgmt + comm) / NEP |
+| `CR_c` | 276 | LR_c + ER_c (checked exactly in 07) |
+| `ER_gross` | 278 | 100 x (mgmt + comm) / gwp |
+| `ER_netric` | 257 | 100 x (mgmt + comm - ric) / NEP; missing where RIC is blank |
+| `COMM_r, MGT_r` | 276 | 100 x comm / NEP; 100 x mgmt / NEP |
+| `RET_c` | 278 | 100 x nwp / gwp |
+| `ln_assets` | 278 | ln(total_assets) if > 0 |
+| `TP_r` | 78 | 100 x tp / NEP (2021+) |
+| `motor_share` | 78 | 100 x motor_gwp / gwp (2021-23; 2024+ in i17_motor_gwp) |
+| `gwp_a, RET_a, LR_a, ER_a, CR_a` | 283 | Annual columns (fill rule 2d): returns values where concordance passes and the ratios exist, else Tier 1 audited values; CR_a = LR_a + ER_a (checked exactly in 07) |
+| `LR_wb, ER_wb, CR_wb` | 281 | Workbook's own printed ratios, percent after unit detection. ER_wb ignored in Q2 2022 (copy of the claims ratio). CR_wb only in Q1 2020 |
+| `gwp_t1, LR_t1, ER_t1, CR_t1, CR_nic_t1, RET_t1, cr_nic_mismatch_t1` | 238 | Tier 1 (audited NIC annual reports, src/tier1.py) values for the same insurer-year |
+| `i17_*` | - | IFRS 17 items, 2024+ only, never mixed with 2013-2023: revenue (Insurance (Service) Revenue), service_expenses, result_gross (= revenue - service expenses), service_result (after reinsurance), incurred_claims, attrib_exp, nonattrib_exp, acq_cf, total_assets, motor classes and their sum motor_gwp, and the printed ratios LR_wb, ER_wb, attrib_ER_wb, nonattrib_ER_wb, tech_margin_wb, CR_wb = LR_wb + ER_wb |

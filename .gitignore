@@ -19,11 +19,12 @@ outputs/tables/fac_*
 # Personal scratch workbook: never track
 data/processed/panel_master_roughwork.xlsx
 
-# NIC quarterly returns workbook: unaudited, confidential pending source confirmation (data_issues A15)
+# NIC quarterly returns workbook: an NIC product (source confirmed); figures are insurers' unaudited quarterly
+# submissions. Kept out of git: publication not cleared (data_issues A15, A17)
 data/raw/quarterly/
 
-# Outputs derived from the confidential quarterly returns workbook (step 09)
+# Insurer-level outputs derived from the NIC quarterly returns workbook (steps 09, 12)
 data/processed/confidential/
 
-# Early-warning experiment: insurer-level outputs derived from the confidential workbook
+# Early-warning experiment: insurer-level outputs derived from the NIC quarterly returns workbook
 experiments/early_warning/outputs/confidential/

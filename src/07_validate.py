@@ -6,7 +6,7 @@ to code or data that moves them is noticed and must be explained.
 """
 import sys, json
 import numpy as np, pandas as pd
-from config import ROOT, INTERIM, PROCESSED, TABLES, MERGERS
+from config import ROOT, INTERIM, PROCESSED, TABLES, MERGERS, QUARTERLY_FILE, CONFIDENTIAL
 from models import fe, wcb
 
 fails, notes = [], []
@@ -111,6 +111,25 @@ check(mm.get(2015) == 21 and mm.get(2016) == 20, f"CR_nic mismatches: 2015 = {mm
 gi = [l.strip() for l in (ROOT / '.gitignore').read_text(encoding='utf-8').splitlines()]
 check('data/processed/confidential/' in gi, "data/processed/confidential/ is listed in .gitignore")
 
-print("\n".join(notes + fails))
+# 8. Returns panel (step 12; NIC quarterly returns workbook: NIC product, insurers' unaudited submissions).
+# Skipped, not counted, when the workbook is absent (public pipeline = v1 results only).
+skips = []
+RP = CONFIDENTIAL / 'returns_panel.csv'
+if QUARTERLY_FILE.exists() and RP.exists():
+    R = pd.read_csv(RP, float_precision='round_trip')
+    pas = R[(R.concordance == 'pass') & R.year.between(2015, 2023) & (R.nep_source != 'not recoverable')
+            & R[['claims', 'mgmt', 'comm']].notna().all(axis=1)]
+    filled = R[R.annual_source == 'filled from annual']     # Q4 failed or missing (not 'components incomplete')
+    ok = pas[['LR_c', 'ER_c', 'CR_c']].notna().all().all() and filled[['LR_c', 'ER_c', 'ln_assets']].isna().all().all() \
+         and R.loc[R.year.between(2015, 2023) & R.in_tier1, ['LR_a', 'ER_a', 'CR_a']].notna().all().all()
+    check(ok, f"returns ratios present: LR_c, ER_c, CR_c for all {len(pas)} concordance-passing 2015-23 rows with "
+              f"recoverable NEP; components missing in all {len(filled)} rows filled from annual; LR_a, ER_a, CR_a for every Tier 1 row")
+    nb = int((R.CR_c.notna() & (R.CR_c != R.LR_c + R.ER_c)).sum() + (R.CR_a.notna() & (R.CR_a != R.LR_a + R.ER_a)).sum())
+    check(nb == 0, f"CR_c == LR_c + ER_c and CR_a == LR_a + ER_a exactly in the returns panel ({nb} rows differ)")
+    # Concordance counts: to be pinned after the authors' review of Part 2 (v2).
+else:
+    skips.append("SKIP returns-panel checks (NIC quarterly returns workbook absent: v2 not reproducible, v1 only)")
+
+print("\n".join(notes + fails + skips))
 print(f"\n{len(notes)} passed, {len(fails)} failed")
 sys.exit(1 if fails else 0)

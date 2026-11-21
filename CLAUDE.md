@@ -6,22 +6,27 @@ supervisor Dr. Perpetual Andam Boiquaye. Question: does insurer-level premium gr
 predict underwriting performance (loss, expense, combined ratio, year t) in Ghana's non-life sector?
 
 ## Pipeline
-`python run_all.py` runs src/01..11 in order (resume with `--from N`). R/twfe_and_system_gmm.R runs after.
+`python run_all.py` runs 01, 02, 12, 03, 04, ..., 11 (resume with `--from N`, N = script number). R/twfe_and_system_gmm.R runs after.
 src/00_fetch_macro.py is run by hand only, to refresh the WDI CPI snapshot in data/raw/macro/.
+**v2 headline results require the NIC quarterly returns workbook (data/raw/quarterly/, not in git). Without it,
+steps 09 and 12 skip and the public pipeline reproduces the v1 (Tier 1, audited annual reports) results only.**
 - 01 verifies SHA-256 of data/raw/nic_text/*.txt, parses table blocks
 - 02 maps blocks to variables by (report, header line); validated against src/expected_blocks.json
-- 03 builds data/processed/panel_master.csv (29 insurers x 2015-2024, unbalanced)
+- 12 returns panel (Tier 2) from the NIC quarterly returns workbook -> data/processed/confidential/returns_panel.csv,
+  returns_quarterly.csv; aggregates outputs/tables/returns_*.csv, seasonality.csv (skips if absent). Runs before 03.
+- 03 builds data/processed/panel_master.csv (29 insurers x 2015-2024, unbalanced); Tier 1 rules in src/tier1.py
 - 04 models + diagnostics -> outputs/tables; also the gross-basis robustness (LR_g/ER_g/CR_g = ratio x RET/100,
   data_issues A16): robust_gross_basis.csv, industry_trends_gross.csv, er_ret_correlation.csv (not pinned)
 - 05 figures -> outputs/figures
 - 06 facultative appendix (skips if confidential file absent)
-- 07 validation: 37 checks incl. pinned headline coefficients. Must pass before results are used.
+- 07 validation: 39 checks incl. pinned headline coefficients (37 + SKIP line without the workbook). Must pass before results are used.
   Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
 - 08 System GMM robustness (pydynpd); runs after 07, results not pinned
-- 09 total assets as size control from the confidential quarterly workbook (skips if absent); not pinned
+- 09 total assets as size control from the NIC quarterly returns workbook (skips if absent); not pinned
 - 10 leave-one-insurer-out for M1 (growth and size); not pinned
 - 11 NIC printed CR vs LR+ER mismatch analysis (2015-16) -> cr_mismatch_analysis.csv; counts pinned in 07
-Shared code: src/models.py (fe with the D12 SE convention, within = exact two-way within-transformation, wcb on it (D14), twdm) and src/names.py (canonical insurer IDs).
+Shared code: src/models.py (fe with the D12 SE convention, within = exact two-way within-transformation, wcb on it (D14), twdm), src/names.py (canonical insurer IDs),
+src/tier1.py (audited Tier 1 table, steps 03 and 12) and src/returns_io.py (workbook reading rules, steps 09 and 12).
 All two-way FE models must use models.fe; never redefine it in a step.
 
 ## Rules
@@ -32,7 +37,8 @@ All two-way FE models must use models.fe; never redefine it in a step.
 - 2024 "GWP" column is Insurance Revenue: never compute 2024 growth from it.
 - Headline inference = insurer-clustered SEs + wild cluster bootstrap. Driscoll-Kraay is unreliable at T=7.
 - Never commit data/raw/production/ (client names).
-- Never commit data/raw/quarterly/ (NIC quarterly returns workbook: unaudited, confidential pending source confirmation)
+- Never commit data/raw/quarterly/ (NIC quarterly returns workbook: an NIC product, source confirmed; the figures are
+  insurers' unaudited quarterly submissions; publication not cleared)
   or data/processed/confidential/ (insurer-level values derived from it). Only aggregate regression outputs may be committed.
 - Growth across a merger is missing (D13): add new mergers to MERGERS in src/config.py, never hard-code them.
 

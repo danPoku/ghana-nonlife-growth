@@ -24,16 +24,10 @@ ER_g and CR_g are left missing for those years (they are not estimated). The ind
 """
 import pandas as pd, numpy as np, json, re
 from config import INTERIM, PROCESSED, RAW_MACRO, WDI_CPI_FILE, MERGERS
+import tier1   # vintage rule, Tier 1 table and CR rule, shared with step 12 (A4)
 
-df = pd.read_csv(INTERIM/'nic_long_all_vintages.csv')
-ins = df[~df.insurer_id.str.startswith(('TOTAL', 'NIC'))].copy()
-ins['vint'] = ins.source_report.str[-4:].astype(int)
-ins['pref'] = -ins.vint
-m = (ins.variable.isin(['gwp', 'pat'])) & (ins.year <= 2019) & (ins.vint == 2019)
-ins.loc[m, 'pref'] = -9999
-ins = ins.sort_values('pref').drop_duplicates(['insurer_id', 'year', 'variable'])
+df, ins = tier1.preferred_long()
 ins.drop(columns=['pref']).to_csv(INTERIM/'nic_long_preferred.csv', index=False)
-W = ins.pivot_table(index=['insurer_id', 'year'], columns='variable', values='value', aggfunc='first').reset_index()
 L = df
 NAMES={'ACTIVA':'Activa International','ALLIANZ':'Allianz Insurance','BEDROCK':'Bedrock Insurance','BEST':'Best Assurance',
 'CORONATION':'Coronation Insurance (formerly WAPIC)','DONEWELL':'Donewell Insurance','ENTERPRISE':'Enterprise Insurance',
@@ -42,10 +36,8 @@ NAMES={'ACTIVA':'Activa International','ALLIANZ':'Allianz Insurance','BEDROCK':'
 'NSIA':'NSIA Ghana','PHOENIX':'Phoenix Insurance','PRIME':'Prime Insurance','PRIORITY':'Priority Insurance','PROVIDENT':'Provident Insurance',
 'QUALITY':'Quality Insurance','REGENCYNEM':'RegencyNem Insurance','SAHAM_SANLAM':'Saham / Sanlam / SanlamAllianz','SERENE':'Serene Insurance',
 'SIC':'SIC Insurance','STAR':'Star Assurance','SUNU':'SUNU Assurances','UNIQUE':'Unique Insurance','VANGUARD':'Vanguard Assurance'}
-P=W.rename(columns={'loss_ratio':'LR','expense_ratio':'ER','combined_ratio':'CR_nic','retention':'RET','net_risk_ratio':'LEV_net','gross_risk_ratio':'LEV_gross'}).copy()
-P=P[P.year.between(2015,2024)]
+P=tier1.panel(ins)
 P['insurer_name']=P.insurer_id.map(NAMES)
-P=P[P.gwp.notna()|P.LR.notna()]
 P=P.sort_values(['insurer_id','year']).reset_index(drop=True)
 # market totals (insurers only, GOGIP excluded)
 tot=P.groupby('year').gwp.sum().rename('mkt_gwp')
@@ -71,8 +63,7 @@ mg=P.groupby('year').apply(lambda d: 100*(d.gwp.sum()/d.gwp_prev[d.gwp_prev.notn
 P=P.merge(mg,on='year',how='left')
 P['g_excess']=P.g-P.groupby('year').g.transform('median')
 P['d_ms']=P.ms-P.ms_prev
-P['CR']=P.LR+P.ER
-P['cr_nic_mismatch']=(P.CR-P.CR_nic).abs()>1
+P=tier1.add_cr(P)
 P['nwp']=P.gwp*P.RET/100
 # gross-basis ratios (see docstring; data_issues A16): understated by NEP/(NEP+RIC); missing under IFRS 17
 ifrs4=P.year<=2022
