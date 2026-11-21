@@ -4,6 +4,23 @@ Vintage rule: GWP and PAT for 2015-2019 come from the 2019 report (exact GHS);
 everything else from the latest report containing it. Overlapping vintages
 were found to agree exactly (see 07_validate.py), so the rule affects
 precision only, not values.
+
+Gross-basis ratios (LR_g, ER_g, CR_g; docs/data_issues.md A16). NIC's LR and ER are on a net basis
+(denominator: net earned premium, NEP, plus reinsurance commission income, RIC, for LR in all reports and
+for ER from the 2020 report), so an insurer that cedes much of its book has a small denominator and a high
+ER. To express claims and expenses relative to GROSS premium:
+    LR_g = LR x RET/100,  ER_g = ER x RET/100,  CR_g = LR_g + ER_g   (RET = NWP/GWP, %)
+Approximation: it assumes NEP ~ NWP and gross earned premium ~ GWP, and it ignores RIC in NIC's denominator.
+Because that denominator is NEP + RIC, ER x RET/100 = (expenses / gross earned premium) x NEP/(NEP+RIC),
+so the gross-basis figures are UNDERSTATED by the factor NEP/(NEP+RIC): the direction is certain, the size
+is unknown because RIC is not published per insurer. (The 2019 report's ER wording omits RIC, but its
+values equal those carried in later reports, so the same factor is assumed throughout.)
+CR_g is NOT an underwriting-profitability measure: it omits the net cost of reinsurance (ceded premium less
+recoveries and commission). The net CR remains the profitability measure; ER_g measures operating
+efficiency only.
+2023-24 (IFRS 17): ER is already over gross Insurance Revenue, so ER x RET/100 would deflate it twice; LR_g,
+ER_g and CR_g are left missing for those years (they are not estimated). The industry gross series in step
+04 handles 2023-24 separately.
 """
 import pandas as pd, numpy as np, json, re
 from config import INTERIM, PROCESSED, RAW_MACRO, WDI_CPI_FILE, MERGERS
@@ -57,6 +74,11 @@ P['d_ms']=P.ms-P.ms_prev
 P['CR']=P.LR+P.ER
 P['cr_nic_mismatch']=(P.CR-P.CR_nic).abs()>1
 P['nwp']=P.gwp*P.RET/100
+# gross-basis ratios (see docstring; data_issues A16): understated by NEP/(NEP+RIC); missing under IFRS 17
+ifrs4=P.year<=2022
+P['LR_g']=np.where(ifrs4,P.LR*P.RET/100,np.nan)
+P['ER_g']=np.where(ifrs4,P.ER*P.RET/100,np.nan)
+P['CR_g']=P.LR_g+P.ER_g
 P['ln_gwp']=np.log(P.gwp)
 P['equity_proxy']=np.where(P.LEV_gross>0,P.gwp/(P.LEV_gross/100),np.nan)
 first=P[P.gwp.notna()].groupby('insurer_id').year.min().rename('first_year')
@@ -89,7 +111,7 @@ P.loc[P.merger_break,'g_source']='not computed: merger year'
 lag=P[['insurer_id','year','g','g_excess','d_ms','RET','LEV_net','ln_gwp','LR','ER','CR']].copy(); lag['year']+=1
 P=P.merge(lag.add_suffix('_L1').rename(columns={'insurer_id_L1':'insurer_id','year_L1':'year'}),on=['insurer_id','year'],how='left')
 cols=['insurer_id','insurer_name','year','gwp_basis','gwp','mkt_gwp','ms','g','g_source','g_calc','chg_gwp_pct','g_flag_nic_disagree','g_mkt_matched','g_excess','g_real','g_real_dec','d_ms',
-'LR','ER','CR','CR_nic','cr_nic_mismatch','RET','nwp','LEV_net','LEV_gross','equity_proxy','ln_gwp','claims_reserve_ratio','tech_reserve_cover','inv_yield','roa','roe','pat','chg_nwp_pct','chg_cap_surplus','prop_inv_assets',
+'LR','ER','CR','CR_nic','cr_nic_mismatch','RET','nwp','LR_g','ER_g','CR_g','LEV_net','LEV_gross','equity_proxy','ln_gwp','claims_reserve_ratio','tech_reserve_cover','inv_yield','roa','roe','pat','chg_nwp_pct','chg_cap_surplus','prop_inv_assets',
 'first_year','last_year','entrant','firm_age_in_panel','startup','post_mid','covid','ifrs17','merger_break','cpi_dec_yoy','cpi_dec_source','cpi_avg_yoy','cpi_avg_source',
 'g_L1','g_excess_L1','d_ms_L1','RET_L1','LEV_net_L1','ln_gwp_L1','LR_L1','ER_L1','CR_L1']
 P=P[cols]; P.to_csv(PROCESSED/'panel_master.csv',index=False)

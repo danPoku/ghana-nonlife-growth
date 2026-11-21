@@ -87,7 +87,24 @@ same_na = (g_real.isna() == P.g_real.isna()).all()
 max_dev = float((g_real - P.g_real).abs().max())
 check(same_na and max_dev <= 1e-9, f"g_real = g deflated by cpi_avg_yoy (max deviation {max_dev:.1e})")
 
-# 6. Confidential outputs derived from the quarterly returns workbook (step 09) must never be committed
+# 6. Gross-basis ratios (data_issues A16): LR_g = LR x RET/100 etc., IFRS 4 years only; CR_g_w is a sum
+g4 = P[(P.year <= 2022) & P[['LR', 'ER', 'RET']].notna().all(axis=1)]
+have = {'LR_g', 'ER_g', 'CR_g'} <= set(P.columns)
+ok = have and g4[['LR_g', 'ER_g', 'CR_g']].notna().all().all() and \
+     np.allclose(g4.LR_g, g4.LR * g4.RET / 100, rtol=0, atol=1e-9) and np.allclose(g4.ER_g, g4.ER * g4.RET / 100, rtol=0, atol=1e-9) and \
+     np.allclose(g4.CR_g, g4.LR_g + g4.ER_g, rtol=0, atol=1e-9)
+check(ok, f"LR_g, ER_g, CR_g present and equal to LR, ER x RET/100 and their sum for all {len(g4)} 2015-2022 rows with LR, ER, RET")
+n17 = int(P.loc[P.year >= 2023, ['LR_g', 'ER_g', 'CR_g']].notna().any(axis=1).sum()) if have else -1
+check(n17 == 0, f"gross-basis ratios missing for 2023-24 (IFRS 17 ER is already gross; {n17} rows filled)")
+# exact test needs exact floats: pandas' default CSV parser can be off by 1 ulp, so re-read with round_trip
+Eg = pd.read_csv(PROCESSED / 'estimation_sample.csv', float_precision='round_trip')
+n_bad = int((Eg.CR_g_w != Eg.LR_g_w + Eg.ER_g_w).sum()) if {'LR_g_w', 'ER_g_w', 'CR_g_w'} <= set(Eg.columns) else -1
+check(n_bad == 0, f"CR_g_w == LR_g_w + ER_g_w exactly in the estimation sample ({n_bad} rows differ)")
+# Mismatch counts pinned from the first run of step 11 (11 runs after 07, so count from the same panel flag).
+# 2015: 21 of 23 comparable rows, 2016: 20 of 23. An earlier off-pipeline check found 19 and 18 of 21 (A16).
+check(mm.get(2015) == 21 and mm.get(2016) == 20, f"CR_nic mismatches: 2015 = {mm.get(2015)} (expected 21), 2016 = {mm.get(2016)} (expected 20)")
+
+# 7. Confidential outputs derived from the quarterly returns workbook (step 09) must never be committed
 gi = [l.strip() for l in (ROOT / '.gitignore').read_text(encoding='utf-8').splitlines()]
 check('data/processed/confidential/' in gi, "data/processed/confidential/ is listed in .gitignore")
 

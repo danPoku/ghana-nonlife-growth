@@ -4,7 +4,7 @@ One row per insurer-year. 29 insurers, 2015-2024, unbalanced (263 rows). Missing
 
 Sources: NIC Annual Reports 2019, 2020, 2022, 2024 (insurer tables). Provenance for every value: data/interim/nic_long_all_vintages.csv (report, table, line).
 
-`estimation_sample.csv` = 2016-2022, start-ups excluded, complete cases; `_w` suffix = winsorised 1st/99th; `g_L1_sq_w` = g_L1_w^2/100; `hi_g_w` = max(0, excess growth - 75th pct); `gxpost_w` = g_L1_w x post_mid.
+`estimation_sample.csv` = 2016-2022, start-ups excluded, complete cases; `_w` suffix = winsorised 1st/99th; `g_L1_sq_w` = g_L1_w^2/100; `hi_g_w` = max(0, excess growth - 75th pct); `gxpost_w` = g_L1_w x post_mid; `LR_g_w`, `ER_g_w` = gross-basis ratios winsorised 1st/99th on the estimation sample, `CR_g_w` = LR_g_w + ER_g_w (sum of the winsorised parts, not winsorised itself).
 
 | Variable | Non-missing | Description |
 |---|---|---|
@@ -25,13 +25,16 @@ Sources: NIC Annual Reports 2019, 2020, 2022, 2024 (insurer tables). Provenance 
 | `g_real` | 231 | g deflated by annual-average CPI inflation (`cpi_avg_yoy`), % |
 | `g_real_dec` | 231 | g deflated by December CPI inflation (`cpi_dec_yoy`), %; for comparison |
 | `d_ms` | 207 | Change in market share, pp |
-| `LR` | 262 | Loss (claims) ratio, % (NIC: net claims incurred / NEP incl. reinsurance commission) |
-| `ER` | 261 | Expense ratio, % (NIC: management + commission expense / NEP [+ reins. income]) |
-| `CR` | 261 | Combined ratio constructed as LR + ER, % |
-| `CR_nic` | 262 | Combined ratio as printed by NIC, % |
+| `LR` | 262 | Loss (claims) ratio, %, NET basis. NIC: net claims incurred / (net earned premium + reinsurance commission income), all IFRS 4 reports; 2023-24 (IFRS 17): incurred claims / Net Insurance Revenue incl. reinsurance commission income (data_issues A16) |
+| `ER` | 261 | Expense ratio, %. NIC: (management + commission expense) / net earned premium (2019 report wording) or / (net earned premium + reinsurance income) (2020 and 2022 reports); overlapping years identical across reports. 2023-24 (IFRS 17): (attributable + non-attributable expenses) / Insurance Revenue, i.e. GROSS of reinsurance (A16) |
+| `CR` | 261 | Combined ratio constructed as LR + ER, % (D5). Net profitability measure. 2023-24 mixes a net LR with a gross ER (A16) |
+| `CR_nic` | 262 | Combined ratio as printed by NIC, % (defined by NIC as LR + ER in every report; differs in 2015-16, see A6, A16 and step 11) |
 | `cr_nic_mismatch` | 263 | |CR - CR_nic| > 1 |
 | `RET` | 262 | Retention ratio NWP/GWP, % |
 | `nwp` | 261 | Net written premium = gwp x RET/100, GHS (approx.; weights) |
+| `LR_g` | 211 | Gross-basis loss ratio = LR x RET/100, %: claims relative to gross earned premium, approx. Assumes NEP ~ NWP and gross earned premium ~ GWP and ignores reinsurance commission income (RIC) in NIC's denominator, so it is UNDERSTATED by the factor NEP/(NEP+RIC) (direction certain, size unknown). 2015-2022 only; missing for 2023-24 (IFRS 17) (A16) |
+| `ER_g` | 210 | Gross-basis expense ratio = ER x RET/100, %: expenses relative to gross earned premium, approx.; same approximation and understatement as `LR_g`. An operating-efficiency measure only. 2015-2022 only (A16) |
+| `CR_g` | 210 | LR_g + ER_g, %. NOT an underwriting-profitability measure: it omits the net cost of reinsurance. Net `CR` remains the profitability measure. 2015-2022 only (A16) |
 | `LEV_net` | 210 | Net insurance risk ratio NWP/equity, % |
 | `LEV_gross` | 211 | Gross insurance risk ratio GWP/equity, % |
 | `equity_proxy` | 210 | gwp / (LEV_gross/100), GHS (approx.) |
