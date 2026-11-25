@@ -21,14 +21,12 @@ python run_all.py            # resume at a script number: python run_all.py --fr
 Rscript R/twfe_and_system_gmm.R
 ```
 
-The run ends with **48 validation checks** (38 plus a SKIP line when the NIC quarterly returns workbook is absent),
-including two independently pinned result sets: "v1 (public, Tier 1 only)" and "v2 (thesis, requires NIC workbook)".
-All must pass before results are used.
+The run ends with **48 validation checks**, including two independently pinned result sets: "v1 (public, Tier 1 only)"
+and "v2 (thesis, requires NIC workbook)". All must pass before results are used.
 
-**v2 headline results require the NIC quarterly returns workbook** (an NIC product; the figures are insurers'
-unaudited quarterly submissions), which is not in the repository. Without it, steps 9 and 12 are skipped and the
-public pipeline reproduces the **v1 (Tier 1, audited NIC annual reports) results only**. The v1 state is tagged
-`v1-methodology`.
+All inputs needed for the v1 and v2 results are in the repository, including the NIC quarterly returns workbook
+(published by the NIC), so `python run_all.py` reproduces both. Only the supplementary facultative appendix (step 6)
+needs a confidential file that is not included; the step skips without it. The v1 state is tagged `v1-methodology`.
 
 ## Pipeline
 
@@ -36,14 +34,14 @@ public pipeline reproduces the **v1 (Tier 1, audited NIC annual reports) results
 |---|---|---|
 | 1 | `src/01_extract_nic.py` | Verifies raw-file checksums; parses all table blocks → `data/interim/blocks.json` |
 | 2 | `src/02_build_long.py` | Validated variable mapping, canonical insurer IDs → `data/interim/nic_long_all_vintages.csv` (every value with report, table and line) |
-| 12 | `src/12_returns_panel.py` | Returns panel (Tier 2) from the NIC quarterly returns workbook (skipped if absent): insurer-level → `data/processed/confidential/` (git-ignored); concordance, seasonality, survivorship, non-submission → `outputs/tables/returns_*.csv`, `seasonality.csv`. Runs before step 3 |
+| 12 | `src/12_returns_panel.py` | Returns panel (Tier 2) from the NIC quarterly returns workbook: insurer-level → `data/processed/`; concordance, seasonality, survivorship, non-submission → `outputs/tables/returns_*.csv`, `seasonality.csv`. Runs before step 3 |
 | 3 | `src/03_build_panel.py` | Insurer-year panel → `data/processed/panel_master.csv` |
 | 4 | `src/04_analysis.py` | Descriptives, TWFE models, diagnostics, wild cluster bootstrap, dynamic check, gross-basis robustness → `outputs/tables/` |
 | 5 | `src/05_figures.py` | Figures 1–5 (v1) and, with the workbook, v2 Figures 1-5, 7 (year-specific MID slopes) and 8 (seasonality) → `outputs/figures/` |
 | 6 | `src/06_facultative.py` | Supplementary facultative-reinsurance appendix (skipped if confidential file absent) |
 | 7 | `src/07_validate.py` | Data-fidelity and pinned-result checks |
 | 8 | `src/08_system_gmm.py` | System GMM robustness (pydynpd) → `outputs/tables/system_gmm*.csv` |
-| 9 | `src/09_total_assets.py` | Total assets as size control, from the NIC quarterly returns workbook (skipped if absent) → `outputs/tables/robust_total_assets*.csv` |
+| 9 | `src/09_total_assets.py` | Total assets as size control, from the NIC quarterly returns workbook → `outputs/tables/robust_total_assets*.csv` |
 | 10 | `src/10_leave_one_out.py` | Leave-one-insurer-out re-estimation of M1 → `outputs/tables/robust_leave_one_out*.csv`, Figure 6 |
 | 11 | `src/11_cr_mismatch.py` | NIC printed CR vs LR + ER, 2015-16 → `outputs/tables/cr_mismatch_analysis.csv` |
 | 13 | `src/13_threshold.py` | Hansen (1999) threshold test (simulation validation, then real data) → `threshold_simulation.csv`, `threshold_v2.csv` |
@@ -63,10 +61,10 @@ public pipeline reproduces the **v1 (Tier 1, audited NIC annual reports) results
   (Ghana annual-average CPI inflation, orig. GSS), used to deflate premium growth (`g_real`, Figure 5).
   The pipeline reads only the snapshot, so it runs offline and is reproducible. To refresh it, run
   `python src/00_fetch_macro.py` (not part of `run_all.py`), then rerun the pipeline.
-- `data/raw/quarterly/` — NIC quarterly returns workbook (Q1 2013 – Q1 2026): an NIC product (source confirmed);
-  the figures are insurers' unaudited quarterly submissions. **Not in git** (publication of insurer-level values not
-  cleared); copy it in manually to run steps 9 and 12. Insurer-level outputs derived from it go to
-  `data/processed/confidential/` (git-ignored); only aggregate tables are committed.
+- `data/raw/quarterly/` — NIC quarterly returns workbook, Market Report Q2 2026 edition (retrieved 21 Nov 2026; read
+  from Q1 2013 to Q1 2026). Figures are insurers' unaudited quarterly submissions, compiled and published by the NIC.
+  Source and URL in `data/raw/quarterly/SOURCE.md`; SHA-256 in `data/raw/CHECKSUMS` (checked by the pipeline; check by
+  hand with `cd data/raw && sha256sum -c CHECKSUMS`). Insurer-level files derived from it are in `data/processed/`.
 
 ## Documentation
 

@@ -1,9 +1,9 @@
 """Experiment 2 (exploratory, pre-registered in README.md): quarterly nowcast of the red zone.
 
-Does year-to-date CR at Q2 (Q3 for reference) from the CONFIDENTIAL NIC quarterly returns workbook
+Does year-to-date CR at Q2 (Q3 for reference) from the NIC quarterly returns workbook
 predict full-year CR > 110? Primary target: audited panel CR (2015-2022). Secondary: workbook Q4 CR
 (2013-2023, and 2024-2025 separately as IFRS 17). Header, alias and exclusion rules copied from
-src/09_total_assets.py; insurer names via names.canon. Skips (exit 0) if the workbook is absent.
+src/09_total_assets.py; insurer names via names.canon. The workbook is opened (SHA-256 checked) via src/returns_io.py.
 """
 import re, sys
 from pathlib import Path
@@ -13,11 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'src'))
 from names import canon
 
-WB = next((ROOT / 'data' / 'raw' / 'quarterly').glob('*.xlsx'), None) if (ROOT / 'data' / 'raw' / 'quarterly').exists() else None
-if WB is None:
-    print("Quarterly returns workbook not found; skipping Experiment 2."); sys.exit(0)
-import openpyxl
-OUT = Path(__file__).resolve().parent / 'outputs'; CONF = OUT / 'confidential'; CONF.mkdir(parents=True, exist_ok=True)
+from returns_io import open_workbook   # config.QUARTERLY_FILE, checked against data/raw/CHECKSUMS
+OUT = Path(__file__).resolve().parent / 'outputs'
 YEARS = range(2013, 2026); B, SEED = 1999, 1
 
 # ---------- reading (rules from src/09_total_assets.py) ----------
@@ -57,7 +54,7 @@ def read_sheet(ws, q, year):
                         gwp=g(gw), claims_ratio=g(cl), expense_ratio=g(ex), combined_ratio_sheet=g(cr), money=money))
     return out
 
-wb = openpyxl.load_workbook(WB, data_only=True, read_only=True)
+wb = open_workbook()
 rows = []
 for s in wb.sheetnames:
     m = re.match(r'^\s*q\s*([234])\s*,?\s*(\d{4})\s*$', s, re.I)
@@ -113,7 +110,7 @@ diff = (W.gwp_q4 - W.panel_gwp).abs()
 tol = np.where(W.year <= 2019, 0.05 * W.panel_gwp, np.maximum(0.05 * W.panel_gwp, 0.5e6))
 W['concordance'] = np.where(~chk, 'not checked', np.where(diff <= tol, 'pass', 'fail'))   # NaN GWP fails
 W['startup'] = W.startup.fillna(False).astype(bool)
-W.to_csv(CONF / 'exp2_insurer_years.csv', index=False)
+W.to_csv(OUT / 'exp2_insurer_years.csv', index=False)
 
 # ---------- helpers ----------
 def auc(y, s):

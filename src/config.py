@@ -15,21 +15,23 @@ for p in (INTERIM, PROCESSED, TABLES, FIGURES):
 
 REPORT_YEARS = [2019, 2020, 2022, 2024]
 
-# SHA-256 of the bundled NIC text extractions. The parser relies on line
-# positions, so any change to these files must be caught before parsing.
-CHECKSUMS = {
-    2019: "c72f47e3cca96a6af9e3156ecd06974e7ca1bf1225b621743f49f3d7f4880d96",
-    2020: "9f8c0dfdb3571252fde237c93884b5413c3c1a9a39e8b027c620531583c73695",
-    2022: "6bd90af2272dc3a95e1310397c66ae300438a43943637b035b64e0d20cd1d0c3",
-    2024: "4c759be2fb7d60b34c323b917c49e2bea3a4e27bf81ee01716811709fbcef1ba",
-}
+# SHA-256 of every tracked raw input (the four NIC text extractions and the NIC quarterly returns workbook), in
+# data/raw/CHECKSUMS (sha256sum format; check by hand with: cd data/raw && sha256sum -c CHECKSUMS). The parser relies on
+# line positions and the returns panel on the exact workbook edition, so any change must be caught before reading.
+RAW = ROOT / "data" / "raw"
+SHA256 = {p.strip(): h for h, p in (l.split(None, 1) for l in (RAW / "CHECKSUMS").read_text(encoding="utf-8").splitlines() if l.strip())}
+CHECKSUMS = {y: SHA256[f"nic_text/NIC_Annual_Report_{y}.txt"] for y in REPORT_YEARS}
 
 PRODUCTION_FILE = RAW_PROD / "Production_Report_for_2025-05-08_10_32_51.xlsx"
 
-# NIC quarterly returns workbook: an NIC product (source confirmed); figures are insurers' unaudited quarterly
-# submissions (data_issues A15, A17). Git-ignored: publication not cleared.
-QUARTERLY_FILE = ROOT / "data" / "raw" / "quarterly" / "MARKET_REPORT_2025_QUARTER_1_2026_NON_LIFE_1_196263973d_6dc3659b1d.xlsx"
-CONFIDENTIAL = ROOT / "data" / "processed" / "confidential"   # outputs derived from QUARTERLY_FILE; git-ignored
+# NIC quarterly returns workbook, published by the NIC on its website (data/raw/quarterly/SOURCE.md; data_issues A15,
+# A17); the figures are insurers' unaudited quarterly submissions. Tracked in git. Edition: Q2 2026, retrieved
+# 21 Nov 2026; its sheets Q1 2013 - Q1 2026 are identical to the Q1 2026 edition the analysis was built on, for every
+# column the pipeline reads (A17). QUARTERLY_LAST caps the sheets read at Q1 2026, so later quarters in the edition
+# (Q2 2026) do not change any output. Insurer-level files derived from it are written to data/processed/.
+QUARTERLY_FILE = RAW / "quarterly" / "MARKET_REPORT_QUARTER_2_2026_NON_LIFE_bf1c110d5c.xlsx"
+QUARTERLY_SHA256 = SHA256["quarterly/" + QUARTERLY_FILE.name]
+QUARTERLY_LAST = (2026, 1)        # (year, quarter) of the last sheet read
 
 # Estimation window (IFRS 4 period; Y years). 2023-24 are IFRS 17: descriptive only.
 EST_START, EST_END = 2016, 2022

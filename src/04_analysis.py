@@ -173,7 +173,7 @@ R['mde']=mde
 json.dump(R,open(TABLES/'results_summary.json','w'),indent=1,default=str)
 print(f"Estimation sample: {R['sample']['n']} obs, {R['sample']['insurers']} insurers. Results in outputs/tables.")
 
-# ---------- v2 main models (methodology revision, Part 3): src/models_v2.py, skipped without the NIC workbook ----------
+# ---------- v2 main models (methodology revision, Part 3): src/models_v2.py ----------
 import models_v2
 models_v2.run()
 

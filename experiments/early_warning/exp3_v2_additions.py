@@ -1,10 +1,10 @@
 """Experiment 3 (exploratory): v2 additions 4a-4e, pre-registered in README.md section 5 (commit 3eef056, pushed
 before this script was written). Implements section 5 as written; anything that had to change is in section 6.
 
-Data: data/processed/confidential/panel_v2.csv, returns_quarterly.csv, returns_panel.csv (pipeline steps 12 and 03;
+Data: data/processed/panel_v2.csv, returns_quarterly.csv, returns_panel.csv (pipeline steps 12 and 03;
 the NIC quarterly returns workbook is an NIC product and its figures are insurers' unaudited quarterly submissions) and
 data/processed/panel_master.csv. Helpers (AUC, Youden, flags, insurer bootstrap, L2 logit) are copied unchanged from
-exp1_annual.py so the estimators are identical. Skips (exit 0) without the confidential v2 files.
+exp1_annual.py so the estimators are identical.
 """
 import sys
 from pathlib import Path
@@ -13,11 +13,8 @@ from scipy.optimize import minimize
 from scipy.stats import rankdata
 
 ROOT = Path(__file__).resolve().parents[2]
-CONFD = ROOT / 'data' / 'processed' / 'confidential'
-OUT = Path(__file__).resolve().parent / 'outputs'; CONF = OUT / 'confidential'
-if not (CONFD / 'panel_v2.csv').exists():
-    print('v2 confidential panel not found (NIC quarterly returns workbook absent); skipping Experiment 3.'); sys.exit(0)
-CONF.mkdir(parents=True, exist_ok=True)
+PROC = ROOT / 'data' / 'processed'
+OUT = Path(__file__).resolve().parent / 'outputs'
 TRAIN, TEST = range(2016, 2021), range(2021, 2023)
 B, SEED = 1999, 1
 
@@ -53,7 +50,7 @@ def logit_l2(Z, y, lam=1.0):
     return r.x
 
 # ---------- data on the full insurer x year grid (a gap year gives a missing lag) ----------
-V = pd.read_csv(CONFD / 'panel_v2.csv'); Qr = pd.read_csv(CONFD / 'returns_quarterly.csv'); Rp = pd.read_csv(CONFD / 'returns_panel.csv')
+V = pd.read_csv(PROC / 'panel_v2.csv'); Qr = pd.read_csv(PROC / 'returns_quarterly.csv'); Rp = pd.read_csv(PROC / 'returns_panel.csv')
 V = V.merge(Rp[['insurer_id', 'year', 'n_quarters_no_figures']], on=['insurer_id', 'year'], how='left')
 q2 = Qr[Qr.quarter == 2].merge(Qr[Qr.quarter == 1][['insurer_id', 'year', 'gwp']].rename(columns={'gwp': 'gwp_q1'}),
                                on=['insurer_id', 'year'], how='left')
@@ -133,7 +130,7 @@ for tgt, crl, lab in [('red', 'CRlag_p', 'primary (CR_corr2020)'), ('red_s', 'CR
         row(**base, method=f'DIFF {mlab[0]} - A', auc=pt[2], ci_lo=lo[2], ci_hi=hi[2],
             readout=verdict + ('' if mlab.startswith('B') and tgt == 'red' else ' (not decisive)'))
         ted.assign(model=mlab, target=lab)[['insurer_id', 'year', 'model', 'target', tgt, crl] + extra + ['sA', 'sB']] \
-            .to_csv(CONF / f"exp3_4c_scores_{tgt}_{mlab[0]}.csv", index=False)
+            .to_csv(OUT / f"exp3_4c_scores_{tgt}_{mlab[0]}.csv", index=False)
     # ---------- 4d: non-submission in t-1 (exploratory) ----------
     d = te.dropna(subset=['nsub_lag'])
     bs, sk = boot(d, tgt, lambda s: auc(s[tgt], s.nsub_lag)); lo, hi = ci(bs)

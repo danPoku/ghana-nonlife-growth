@@ -88,7 +88,7 @@ One element changed at a time, M1, two-way FE, clustered SEs (D12), bootstrap p 
 **The v1 within-insurer size effect on the expense ratio rested on the erroneous printed 2016 expense ratios:** the 2015-16 ER correction alone (step C) moves it from -11.4 (p = 0.028) to -5.0 (p = 0.29). The between-insurer size effect survives (Mundlak, D18): -12.9 (p = 0.010) in v1, -12.1 (p = 0.043) in v2. The growth coefficient stays null throughout; its largest move comes from the component-based outcomes (E -> F).
 
 ## D15 note: data tiers and primary outcomes (Part 2-3, Nov 2026)
-- **Tier 2 source.** The NIC quarterly returns workbook is an NIC product (source confirmed 21 Nov 2026); its figures are insurers' unaudited quarterly submissions. It is kept out of git (A15); insurer-level derived values live in `data/processed/confidential/`. The public pipeline reproduces v1 only.
+- **Tier 2 source.** The NIC quarterly returns workbook is published by the NIC (source confirmed 21 Nov 2026); its figures are insurers' unaudited quarterly submissions. Since the public release (25 Nov 2026) it is tracked in git with its derived insurer-level files in `data/processed/` (A15, A17; edition Q2 2026, read to Q1 2026), so the public pipeline reproduces v1 and v2.
 - **Concordance** (A19): 2015-2023, 238 Tier 1 insurer-years; 234 Q4 rows within max(5%, GHS 0.5m) of audited GWP, 3 fail, 1 has no Q4 row; 2 Q4 copy-forwards (pinned in 07).
 - **Basis** (A17): the workbook's claims ratio is over NEP + RIC (NIC's own definition), so the primary denominator is NEP + RIC; true-NEP ratios and ER net of RIC are secondary.
 - **Primary outcomes:** LR_c, ER_c, CR_c = component-based on the NEP + RIC basis where Q4 passes concordance, Tier 1 published where it fails or is missing (6 of 171 sample rows: 2 failed or missing Q4, 4 with the denominator not recoverable).
@@ -183,7 +183,7 @@ The step runs after 07_validate.py and its results are **not pinned**.
 
 **v2 System GMM (Part 5, `system_gmm_v2.csv`).** Same specification on the v2 panel (component-based outcomes, single growth measure, ln(total assets) as size; 136 differenced observations, 26 insurers, 16-18 instruments): lagged growth is insignificant in every variant and outcome (p >= 0.22); AR(2) never rejects; Hansen p 0.09-0.90. Anderson-Hsiao (v2): growth p = 0.26 (LR), 0.95 (ER), 0.43 (CR); first-stage F 26-68.
 
-## Headline results, v2 (21 Nov 2026; requires the NIC workbook; pinned in 07 as "v2 (thesis, requires NIC workbook)")
+## Headline results, v2 (21 Nov 2026; pinned in 07 as "v2 (thesis, requires NIC workbook)"; the workbook is tracked since 25 Nov 2026)
 - **Lagged growth -> CR:** +0.016 pp per 1 pp (SE 0.091; bootstrap p = 0.92); +10 pp growth: 95% CI [-1.6, +1.9] pp; MDE 2.5 pp. Null under every specification, outcome variant, System GMM (p >= 0.22), Anderson-Hsiao, leave-one-out (0 of 28 runs significant) and the threshold test.
 - **Size:** no within-insurer effect (ER +3.5, p = 0.74); between insurers, larger insurers have lower expense ratios (-12.1 per log unit, p = 0.043).
 - **Growth between insurers:** faster-growing insurers have lower average ER and CR (Mundlak; -0.25 and -0.28, p = 0.010 and 0.013); the quartile pattern (Figure 3) is this between-insurer difference.

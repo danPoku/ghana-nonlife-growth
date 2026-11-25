@@ -1,11 +1,25 @@
 """Reading rules for the NIC quarterly returns workbook, shared by step 09 (total assets) and step 12 (returns panel).
 
-The workbook is an NIC product (source confirmed); its figures are insurers' unaudited quarterly submissions
-(data_issues A15, A17). It is kept out of git (data/raw/quarterly/, git-ignored); publication is not cleared.
+The workbook is published by the NIC on its website (data/raw/quarterly/SOURCE.md); its figures are insurers' unaudited
+quarterly submissions (data_issues A15, A17). It is tracked in git and checked against its SHA-256 before it is read.
 Moved unchanged from step 09 (v2, Part 2), plus the sheet-name parser; step 09's outputs are identical.
 """
-import re
+import re, sys, hashlib
 from names import canon
+from config import QUARTERLY_FILE, QUARTERLY_SHA256, QUARTERLY_LAST
+
+def open_workbook():
+    """The NIC quarterly returns workbook, after its SHA-256 is checked against data/raw/CHECKSUMS."""
+    if not QUARTERLY_FILE.exists():
+        sys.exit(f"Missing {QUARTERLY_FILE} (tracked in git: restore it with git checkout).")
+    if hashlib.sha256(QUARTERLY_FILE.read_bytes()).hexdigest() != QUARTERLY_SHA256:
+        sys.exit(f"Checksum mismatch for {QUARTERLY_FILE.name}: the reading rules are only valid for the recorded edition.")
+    import openpyxl
+    return openpyxl.load_workbook(QUARTERLY_FILE, data_only=True, read_only=True)
+
+def in_scope(qy):
+    """True for a (quarter, year) sheet up to QUARTERLY_LAST (Q1 2026)."""
+    return qy is not None and (qy[1], qy[0]) <= QUARTERLY_LAST
 
 HDR_NAME = ('company', 'non-life insurer', 'non life insurers')
 ALIASES = [(r'^gn insurance', 'BEDROCK', None), (r'^equity assurance', 'SUNU', None),

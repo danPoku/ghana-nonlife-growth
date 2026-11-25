@@ -7,13 +7,13 @@ recording growth (g_L1_w) and size (v1: ln_gwp_L1; v2: ln_assets_L1).
 WINSORISING: the existing _w values in the estimation sample are used unchanged. Bounds are NOT recomputed
 after dropping an insurer, so each run changes only the sample, not the variable definitions.
 v1: estimation_sample.csv, checked against regressions.csv -> robust_leave_one_out*.csv, F6_leave_one_out.png.
-v2: data/processed/confidential/estimation_sample_v2.csv (workbook-derived), checked against main_models_v2.csv
+v2: data/processed/estimation_sample_v2.csv, checked against main_models_v2.csv
 -> robust_leave_one_out*_v2.csv (aggregate), F6_leave_one_out_v2.png.
 """
 import numpy as np, pandas as pd
 import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from config import PROCESSED, TABLES, FIGURES, CONFIDENTIAL, QUARTERLY_FILE
+from config import PROCESSED, TABLES, FIGURES
 from models import fe
 
 Ys = ['LR_w', 'ER_w', 'CR_w']
@@ -74,17 +74,14 @@ figure(L, full, 'Figure 6. Leave-one-insurer-out: effect of lagged premium growt
        'v1: estimation sample 2016-2022 (176 insurer-years); each row re-estimates M1 without that insurer;\n'
        'winsorised values unchanged; insurer-clustered SEs (D12).', FIGURES / 'F6_leave_one_out.png')
 print('v1:'); print(S.round(4).to_string(index=False))
-# ---------- v2 (thesis, requires the NIC workbook) ----------
-E2p, MV = CONFIDENTIAL / 'estimation_sample_v2.csv', TABLES / 'main_models_v2.csv'
-if QUARTERLY_FILE.exists() and E2p.exists():
-    E2 = pd.read_csv(E2p); M = pd.read_csv(MV)
-    ref2 = lambda y, t: tuple(M[(M.block == 'main') & (M.model == 'M1') & (M.outcome == y) & (M.term == t)].iloc[0][['coef', 'se']])
-    L2, S2, full2 = loo(E2, ['g_L1_w', 'RET', 'ln_assets_L1', 'LEV_net_L1_w'], ['g_L1_w', 'ln_assets_L1'], ref2)
-    L2.to_csv(TABLES / 'robust_leave_one_out_v2.csv', index=False); S2.to_csv(TABLES / 'robust_leave_one_out_summary_v2.csv', index=False)
-    figure(L2, full2, 'Figure 6 (v2). Leave-one-insurer-out: effect of lagged premium growth (M1, two-way FE)',
-           'v2: estimation sample 2016-2022 (171 insurer-years), component-based outcomes, ln(assets) as size; each row re-estimates M1\n'
-           'without that insurer; winsorised values unchanged; insurer-clustered SEs (D12).', FIGURES / 'F6_leave_one_out_v2.png')
-    print('v2:'); print(S2.round(4).to_string(index=False))
-else:
-    print('v2 leave-one-out skipped (NIC quarterly returns workbook absent).')
+# ---------- v2 (thesis) ----------
+E2p, MV = PROCESSED / 'estimation_sample_v2.csv', TABLES / 'main_models_v2.csv'
+E2 = pd.read_csv(E2p); M = pd.read_csv(MV)
+ref2 = lambda y, t: tuple(M[(M.block == 'main') & (M.model == 'M1') & (M.outcome == y) & (M.term == t)].iloc[0][['coef', 'se']])
+L2, S2, full2 = loo(E2, ['g_L1_w', 'RET', 'ln_assets_L1', 'LEV_net_L1_w'], ['g_L1_w', 'ln_assets_L1'], ref2)
+L2.to_csv(TABLES / 'robust_leave_one_out_v2.csv', index=False); S2.to_csv(TABLES / 'robust_leave_one_out_summary_v2.csv', index=False)
+figure(L2, full2, 'Figure 6 (v2). Leave-one-insurer-out: effect of lagged premium growth (M1, two-way FE)',
+       'v2: estimation sample 2016-2022 (171 insurer-years), component-based outcomes, ln(assets) as size; each row re-estimates M1\n'
+       'without that insurer; winsorised values unchanged; insurer-clustered SEs (D12).', FIGURES / 'F6_leave_one_out_v2.png')
+print('v2:'); print(S2.round(4).to_string(index=False))
 print('Saved: robust_leave_one_out*.csv, F6_leave_one_out*.png')

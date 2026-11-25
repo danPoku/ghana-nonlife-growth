@@ -2,7 +2,7 @@
 
 The defence specified ln(total assets) (D1), but NIC annual reports do not publish assets per insurer,
 so the main models use ln(lagged GWP). The NIC quarterly returns workbook (an NIC product, source confirmed;
-the figures are insurers' unaudited quarterly submissions; kept out of git, data_issues A15, A17) has total
+the figures are insurers' unaudited quarterly submissions; published by the NIC, tracked, data_issues A15, A17) has total
 assets per insurer per quarter. Q4 sheets only: assets are a year-end stock. Reading rules: src/returns_io.py.
 
 Filters (counts reported in robust_total_assets_coverage.csv):
@@ -13,16 +13,12 @@ Filters (counts reported in robust_total_assets_coverage.csv):
   (c) non-positive assets -> missing
   (d) jump, REPORT-ONLY: assets > 3x or < 1/3 of the previous year
 Models reuse models.fe (D12) on estimation_sample.csv without re-winsorising.
-Skips (exit 0) if the workbook is absent, so the public pipeline still runs.
 """
 import sys
 import numpy as np, pandas as pd
-from config import QUARTERLY_FILE, CONFIDENTIAL, PROCESSED, TABLES
+from config import PROCESSED, TABLES
 from models import fe, twdm, wcb
-from returns_io import map_id, sheet_quarter, header_row, data_rows   # shared with step 12
-if not QUARTERLY_FILE.exists():
-    print("Quarterly returns workbook not found; skipping step 9."); sys.exit(0)
-import openpyxl
+from returns_io import map_id, sheet_quarter, header_row, data_rows, open_workbook   # shared with step 12
 
 YEARS = range(2015, 2023)          # years with audited panel GWP for the concordance check
 HDR_GWP = ('gross written premium', 'gross premium', 'gross premiums')
@@ -40,7 +36,7 @@ def read_sheet(ws, year):
                         total_assets_raw=num(r[ta]), wb_gwp=num(r[gw]), vals=vals))
     return out
 
-wb = openpyxl.load_workbook(QUARTERLY_FILE, data_only=True, read_only=True)
+wb = open_workbook()
 sheets = {}
 for s in wb.sheetnames:
     qy = sheet_quarter(s)
@@ -84,12 +80,11 @@ prev = pos.groupby(Q4.insurer_id).shift(); consec = Q4.year.diff().eq(1) & Q4.in
 ratio = (pos / prev).where(consec)
 Q4['flag_jump'] = (ratio > 3) | (ratio < 1 / 3)
 Q4['total_assets'] = Q4.total_assets_raw.where(~Q4.flag_concordance_fail & ~Q4.flag_nonpositive & Q4.total_assets_raw.notna())
-CONFIDENTIAL.mkdir(parents=True, exist_ok=True)
 cols = ['insurer_id', 'year', 'source_name', 'total_assets', 'total_assets_raw', 'wb_gwp', 'panel_gwp', 'gwp_rel_diff',
         'flag_copy_forward', 'flag_concordance_fail', 'flag_nonpositive', 'flag_jump']
-Q4[cols].to_csv(CONFIDENTIAL / 'total_assets_q4.csv', index=False)
+Q4[cols].to_csv(PROCESSED / 'total_assets_q4.csv', index=False)
 
-# coverage by year (aggregate; insurer IDs are public NIC names, no confidential values)
+# coverage by year
 ids = lambda d: ';'.join(sorted(d.insurer_id))
 cov = []
 for y, d in Q4.groupby('year'):
@@ -133,4 +128,4 @@ print(cov.drop(columns=['concordance_failed_ids']).to_string(index=False))
 print(f"\nSubsample with ln_assets_L1: {len(S)} of {len(E)} rows, {S.insurer_id.nunique()} insurers. Within-insurer corr(ln_assets_L1, ln_gwp_L1) = {corr_within:.3f}")
 show = R[R.term.isin(['g_L1_w', 'ln_gwp_L1', 'ln_assets_L1'])]
 print(show.round(4).to_string(index=False))
-print("Saved: robust_total_assets.csv, robust_total_assets_coverage.csv (confidential detail in data/processed/confidential/)")
+print("Saved: robust_total_assets.csv, robust_total_assets_coverage.csv (insurer-level detail in data/processed/total_assets_q4.csv)")

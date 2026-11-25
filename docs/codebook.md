@@ -78,11 +78,11 @@ Robustness variable (step 09 only; not in panel_master.csv or estimation_sample.
 
 | Variable | Non-missing | Description |
 |---|---|---|
-| `ln_assets_L1` | 172 of 176 estimation rows | ln(total assets at 31 Dec of t-1), from the Q4 sheets of the NIC quarterly returns workbook (an NIC product; insurers' unaudited submissions; A15, A17), kept only where the workbook's Q4 GWP passes the concordance check against audited annual GWP. Insurer-level values are in the git-ignored `data/processed/confidential/total_assets_q4.csv` |
+| `ln_assets_L1` | 172 of 176 estimation rows | ln(total assets at 31 Dec of t-1), from the Q4 sheets of the NIC quarterly returns workbook (published by the NIC; insurers' unaudited submissions; A15, A17), kept only where the workbook's Q4 GWP passes the concordance check against audited annual GWP. Insurer-level values are in `data/processed/total_assets_q4.csv` |
 
-## Returns panel (Tier 2, step 12): data/processed/confidential/returns_panel.csv
+## Returns panel (Tier 2, step 12): data/processed/returns_panel.csv
 
-Source: the NIC quarterly returns workbook (an NIC product, source confirmed; the figures are insurers' unaudited quarterly submissions; data_issues A15, A17-A20). Git-ignored: insurer-level values are not published (decision A2). Aggregate tables: `outputs/tables/returns_*.csv`, `seasonality.csv`.
+Source: the NIC quarterly returns workbook (published by the NIC; the figures are insurers' unaudited quarterly submissions; data_issues A15, A17-A20; `data/raw/quarterly/SOURCE.md`). Aggregate tables: `outputs/tables/returns_*.csv`, `seasonality.csv`.
 339 rows. Ratios in percent. `returns_quarterly.csv` holds every quarter (Q1 2013 - Q1 2026) with the same variables on a year-to-date basis, plus `quarter`, `sheet`, `era` (ifrs4 / ifrs17), `er_wb_defective_sheet` and quarterly increments `<flow>_inc` (Qq - Qq-1 of the same insurer-year; Q1 = year-to-date).
 
 | Variable | Non-missing | Definition |
@@ -113,9 +113,9 @@ Source: the NIC quarterly returns workbook (an NIC product, source confirmed; th
 | `gwp_t1, LR_t1, ER_t1, CR_t1, CR_nic_t1, RET_t1, cr_nic_mismatch_t1` | 238 | Tier 1 (audited NIC annual reports, src/tier1.py) values for the same insurer-year (published ER) |
 | `i17_*` | - | IFRS 17 items, 2024+ only, never mixed with 2013-2023: revenue (Insurance (Service) Revenue), service_expenses, result_gross (= revenue - service expenses), service_result (after reinsurance), incurred_claims, attrib_exp, nonattrib_exp, acq_cf, total_assets, motor classes and their sum motor_gwp, and the printed ratios LR_wb, ER_wb, attrib_ER_wb, nonattrib_ER_wb, tech_margin_wb, CR_wb = LR_wb + ER_wb |
 
-## v2 analysis panel: data/processed/confidential/panel_v2.csv (step 03, Part 3)
+## v2 analysis panel: data/processed/panel_v2.csv (step 03, Part 3)
 
-263 rows: panel_master.csv plus the columns below, built only when the returns panel exists (git-ignored, A2). `estimation_sample_v2.csv` (same folder) = 2016-2022, start-ups excluded, complete on LR_c, ER_c, g_L1, RET, ln_assets_L1, LEV_net_L1 (171 rows, 28 insurers); `LR_w`, `ER_w` = LR_c, ER_c winsorised 1/99 on that sample and `CR_w` = LR_w + ER_w (additive, checked in 07).
+263 rows: panel_master.csv plus the columns below, built from the returns panel (step 12). `estimation_sample_v2.csv` (same folder) = 2016-2022, start-ups excluded, complete on LR_c, ER_c, g_L1, RET, ln_assets_L1, LEV_net_L1 (171 rows, 28 insurers); `LR_w`, `ER_w` = LR_c, ER_c winsorised 1/99 on that sample and `CR_w` = LR_w + ER_w (additive, checked in 07).
 
 | Variable | Non-missing | Definition |
 |---|---|---|

@@ -1,8 +1,8 @@
 """v2 main models (Part 3 of the methodology revision), run at the end of step 04.
 
-Data: data/processed/confidential/panel_v2.csv (step 03), which holds values derived from the NIC quarterly returns
-workbook (an NIC product; insurers' unaudited quarterly submissions), so the insurer-level estimation sample is written
-to data/processed/confidential/ and only aggregate results go to outputs/tables/. Skips if the panel is absent.
+Data: data/processed/panel_v2.csv (step 03), which holds values derived from the NIC quarterly returns workbook
+(published by the NIC; insurers' unaudited quarterly submissions). The insurer-level estimation sample is written to
+data/processed/ and the aggregate results to outputs/tables/.
 
 Design (authors' decisions after the Part 2 review):
 - Sample: 2016-2022, start-up years excluded, complete on the M1 variables (outcome, g_L1, RET, ln_assets_L1, LEV_net_L1).
@@ -24,7 +24,7 @@ Design (authors' decisions after the Part 2 review):
 - Reverse regression: g_t on CR_c(t-1), and on LR_c(t-1) and ER_c(t-1), with the M1 controls.
 """
 import numpy as np, pandas as pd, statsmodels.api as sm
-from config import CONFIDENTIAL, TABLES, QUARTERLY_FILE
+from config import PROCESSED, TABLES
 from models import fe, wcb, wald
 
 B_WCB = 1999
@@ -122,10 +122,7 @@ def anderson_hsiao(E):
     return pd.DataFrame(out)
 
 def run():
-    PV = CONFIDENTIAL / 'panel_v2.csv'
-    if not (QUARTERLY_FILE.exists() and PV.exists()):
-        print('v2 models skipped: NIC quarterly returns workbook or panel_v2 absent (public pipeline = v1 results only).')
-        return
+    PV = PROCESSED / 'panel_v2.csv'
     V = pd.read_csv(PV)
     E = V[V.year.between(2016, 2022) & ~V.startup].copy()
     base = E.dropna(subset=['LR_c', 'ER_c', 'g_L1', 'RET', 'ln_assets_L1', 'LEV_net_L1']).copy()
@@ -133,7 +130,7 @@ def run():
     base['g_L1_sq_w'] = base.g_L1_w ** 2 / 100
     p75 = base.g_excess_L1.quantile(.75); base['hi_g_w'] = np.maximum(0, base.g_excess_L1_w - p75)
     B = add_outcomes(base, 'LR_c', 'ER_c')
-    B.to_csv(CONFIDENTIAL / 'estimation_sample_v2.csv', index=False)
+    B.to_csv(PROCESSED / 'estimation_sample_v2.csv', index=False)
     ctrl = ['RET', 'ln_assets_L1', 'LEV_net_L1_w']
     specs = {'M0_growth_only': ['g_L1_w'], 'M1': ['g_L1_w'] + ctrl,
              'M1b_lngwp_size': ['g_L1_w', 'RET', 'ln_gwp_L1', 'LEV_net_L1_w'],
@@ -306,9 +303,9 @@ def run():
         for _, r in d.iterrows(): ex.append(dict(insurer_id=i, status=note, **r[['year', 'g', 'g_v1', 'LR_c', 'ER_c', 'CR_c', 'LR', 'ER',
                                                   'CR', 'ms', 'c_source', 'g_pct', 'CR_c_pct', 'g_v1_pct', 'CR_pct']].to_dict()))
     EX = pd.DataFrame(ex).merge(med, left_on='year', right_index=True)
-    EX.to_csv(CONFIDENTIAL / 'exits.csv', index=False)                      # component basis: workbook-derived (A2)
+    EX.to_csv(PROCESSED / 'exits.csv', index=False)                         # component basis (workbook-derived)
     EX[['insurer_id', 'status', 'year', 'g_v1', 'LR', 'ER', 'CR', 'ms', 'g_v1_pct', 'CR_pct', 'g_v1_year_median', 'CR_year_median']] \
-        .assign(note='Tier 1 published values (public); component-based version in data/processed/confidential/exits.csv') \
+        .assign(note='Tier 1 published values (public); component-based version in data/processed/exits.csv') \
         .to_csv(TABLES / 'exits.csv', index=False)
     # ---------- RQ1 descriptive series (all insurers, NWP-weighted) ----------
     ind = []
@@ -338,4 +335,4 @@ def run():
     print('\nv1 -> v2 bridge:'); print(BR.round(4).to_string(index=False))
     print('\nExits:'); print(EX.round(2).to_string(index=False))
     print('Saved: main_models_v2.csv, rq3_tests_v2.csv, cre_mundlak_v2.csv, industry_trends_v2.csv, v1_v2_bridge*.csv, '
-          'growth_quartiles_v2.csv, exits.csv, diagnostics_v2.csv, anderson_hsiao_v2.csv (outputs/tables); estimation_sample_v2.csv, exits.csv (confidential)')
+          'growth_quartiles_v2.csv, exits.csv, diagnostics_v2.csv, anderson_hsiao_v2.csv (outputs/tables); estimation_sample_v2.csv, exits.csv (data/processed)')

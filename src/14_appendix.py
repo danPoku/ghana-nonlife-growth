@@ -2,7 +2,7 @@
 
 Built from the AGGREGATE outputs of steps 04 (models_v2), 08, 10, 12, 13 and the two experiments; no insurer-level
 value is read or written. Every file carries a `note` column with one line on sample and inference. Runs last, so it
-checks its own output (non-empty, noted) instead of step 07. Skips if the v2 tables are absent (public pipeline = v1).
+checks its own output (non-empty, noted) instead of step 07. Stops if any v2 table is missing.
 """
 import sys
 import numpy as np, pandas as pd
@@ -13,7 +13,7 @@ need = ['main_models_v2.csv', 'rq3_tests_v2.csv', 'diagnostics_v2.csv', 'cre_mun
         'seasonality.csv', 'returns_concordance.csv', 'driscoll_kraay_v2.csv']
 miss = [f for f in need if not (TABLES / f).exists()]
 if miss:
-    print(f'Step 14 skipped: v2 tables absent ({", ".join(miss)}); the public pipeline reproduces v1 only.'); sys.exit(0)
+    sys.exit(f'Step 14: v2 tables missing ({", ".join(miss)}); run the earlier steps first.')
 rd = lambda f: pd.read_csv(TABLES / f)
 EW, AK = ROOT / 'experiments' / 'early_warning' / 'outputs', ROOT / 'experiments' / 'akotey_replication' / 'outputs'
 M = rd('main_models_v2.csv')

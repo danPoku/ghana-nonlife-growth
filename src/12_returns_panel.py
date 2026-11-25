@@ -1,14 +1,13 @@
 """Step 12: returns-based component panel (Tier 2) from the NIC quarterly returns workbook.
 
-Source: the NIC quarterly returns workbook (an NIC product, source confirmed; the figures are insurers' unaudited
-quarterly submissions). data_issues A15, A17-A19. Insurer-level outputs -> data/processed/confidential/ (git-ignored,
-decision A2); aggregate tables -> outputs/tables/. Skips (exit 0) if the workbook is absent: the public pipeline then
-reproduces the v1 (Tier 1) results only. Runs after step 02 and before step 03 (decision A4); Tier 1 comes from
-src/tier1.py, the reading rules from src/returns_io.py (shared with step 09).
+Source: the NIC quarterly returns workbook, published by the NIC (tracked in git, SHA-256 checked); the figures are
+insurers' unaudited quarterly submissions. data_issues A15, A17-A19. Insurer-level outputs -> data/processed/; aggregate
+tables -> outputs/tables/. Runs after step 02 and before step 03 (decision A4); Tier 1 comes from src/tier1.py, the
+reading rules from src/returns_io.py (shared with step 09).
 
-Reading. Every sheet 'Qq YYYY' (Q1 2013 - Q1 2026); last header row; rows down to the total row. Every header must
-map to a variable (HMAP4 for 2013-2023, IFRS 4; HMAP17 for 2024+, IFRS 17) or be on the IGNORE list; any other header
-STOPS the step. Unmapped insurer names STOP the step, except the HOLD_OUT rows listed below. Ratio columns: unit per
+Reading. Every sheet 'Qq YYYY' from Q1 2013 to Q1 2026 (config.QUARTERLY_LAST; later sheets ignored); last header row;
+rows down to the total row. Every header must map to a variable (HMAP4 for 2013-2023, IFRS 4; HMAP17 for 2024+,
+IFRS 17) or be on the IGNORE list; any other header STOPS the step. Unmapped insurer names STOP the step, except the HOLD_OUT rows listed below. Ratio columns: unit per
 sheet and column (median of |values| < 3 -> fraction, x 100). Sheets are year-to-date (YTD); flows also get quarterly
 increments (Qq - Qq-1 of the same insurer-year; Q1 = YTD).
 
@@ -38,13 +37,9 @@ are flagged 'filled from annual'; components and assets stay missing.
 """
 import sys
 import numpy as np, pandas as pd
-from config import QUARTERLY_FILE, CONFIDENTIAL, TABLES, MERGERS
-from returns_io import map_id, norm, sheet_quarter, header_row, data_rows
+from config import PROCESSED, TABLES, MERGERS
+from returns_io import map_id, norm, sheet_quarter, header_row, data_rows, open_workbook, in_scope
 import tier1
-if not QUARTERLY_FILE.exists():
-    print("NIC quarterly returns workbook not found; skipping step 12 (v2 returns panel). "
-          "The public pipeline reproduces v1 (Tier 1) results only."); sys.exit(0)
-import openpyxl
 
 # ---------------------------------------------------------------- header maps (decision A3)
 HMAP4 = {'gwp': ['gross written premium', 'gross premium', 'gross premiums'],
@@ -110,11 +105,11 @@ for era, hm in (('ifrs4', HMAP4), ('ifrs17', HMAP17)):
         for h in hs: lookup[(era, h)] = var
 
 # ---------------------------------------------------------------- read every quarterly sheet
-wb = openpyxl.load_workbook(QUARTERLY_FILE, data_only=True, read_only=True)
+wb = open_workbook()
 recs, unmatched, unmapped, held, nonnum, dupvar, cells = [], {}, [], [], {}, [], []   # cells: non-numeric cells handled
 for s in wb.sheetnames:
     qy = sheet_quarter(s)
-    if not qy: continue
+    if not in_scope(qy): continue      # sheets Q1 2013 - Q1 2026 (QUARTERLY_LAST)
     q, y = qy; era = 'ifrs4' if y <= 2023 else 'ifrs17'
     rows = list(wb[s].iter_rows(values_only=True))
     h, hn, nc = header_row(rows)
@@ -221,10 +216,9 @@ Q['i17_motor_gwp'] = Q[['i17_motor_comp', 'i17_motor_tp', 'i17_motor_tpft', 'i17
 Q['i17_CR_wb'] = Q.i17_LR_wb + Q.i17_ER_wb
 mrg = {(m['insurer_id'], m['year']) for m in MERGERS}
 Q['merger_year'] = [(i, y) in mrg for i, y in zip(Q.insurer_id, Q.year)]
-CONFIDENTIAL.mkdir(parents=True, exist_ok=True)
 EXC = Q[Q.insurer_id == 'EXCLUDED'].copy()
 Q = Q[Q.insurer_id != 'EXCLUDED'].copy()
-Q.to_csv(CONFIDENTIAL / 'returns_quarterly.csv', index=False)
+Q.to_csv(PROCESSED / 'returns_quarterly.csv', index=False)
 U.to_csv(TABLES / 'returns_units.csv', index=False)
 
 # ---------------------------------------------------------------- Tier 1 and the annual panel (Q4)
@@ -279,7 +273,7 @@ keep = ['insurer_id', 'year', 'source_name', 'in_tier1', 'has_q4_row', 'has_figu
         'LR_a', 'ER_a', 'CR_a', 'RET_a', 'LR_wb', 'ER_wb', 'CR_wb', 'LR_t1', 'ER_t1', 'CR_t1', 'CR_nic_t1', 'RET_t1',
         'cr_nic_mismatch_t1'] + [c for c in Q.columns if c.startswith('i17_') and not c.endswith('_inc')]
 A = A[keep].sort_values(['insurer_id', 'year']).reset_index(drop=True)
-A.to_csv(CONFIDENTIAL / 'returns_panel.csv', index=False)
+A.to_csv(PROCESSED / 'returns_panel.csv', index=False)
 
 # ---------------------------------------------------------------- concordance (2c)
 C = A[A.year.between(2015, 2023) & A.in_tier1]
@@ -304,7 +298,7 @@ for c, t in [('LR_c', 'LR_t1'), ('ER_c', 'ER_t1'), ('CR_c', 'CR_nic_t1')]:
     d = P5[(P5[c] - P5[t]).abs() > 5]
     det += [dict(insurer_id=r.insurer_id, year=r.year, comparison=f'{c} vs {t}', returns=r[c], tier1=r[t],
                  diff=r[c] - r[t], nep_source=r.nep_source, flag_copy_forward=r.flag_copy_forward) for _, r in d.iterrows()]
-DET = pd.DataFrame(det); DET.to_csv(CONFIDENTIAL / 'returns_concordance_detail.csv', index=False)
+DET = pd.DataFrame(det); DET.to_csv(PROCESSED / 'returns_concordance_detail.csv', index=False)
 # 2015-16 cr_nic_mismatch rows: does the returns ER match CR_nic - LR (the typo hypothesis) or the printed ER?
 MM = C[C.year.isin([2015, 2016]) & C.cr_nic_mismatch_t1.fillna(False).astype(bool)].copy()
 MM['ER_implied_by_CRnic'] = MM.CR_nic_t1 - MM.LR_t1
@@ -312,7 +306,7 @@ MM['abs_diff_vs_CRnic_minus_LR'] = (MM.ER_c - MM.ER_implied_by_CRnic).abs()
 MM['abs_diff_vs_printed_ER'] = (MM.ER_c - MM.ER_t1).abs()
 MM['abs_diff_LR_c_vs_LR'] = (MM.LR_c - MM.LR_t1).abs()
 MM[['insurer_id', 'year', 'concordance', 'nep_source', 'LR_t1', 'ER_t1', 'CR_nic_t1', 'ER_implied_by_CRnic', 'LR_c', 'ER_c',
-    'abs_diff_LR_c_vs_LR', 'abs_diff_vs_CRnic_minus_LR', 'abs_diff_vs_printed_ER']].to_csv(CONFIDENTIAL / 'returns_mismatch_2015_16.csv', index=False)
+    'abs_diff_LR_c_vs_LR', 'abs_diff_vs_CRnic_minus_LR', 'abs_diff_vs_printed_ER']].to_csv(PROCESSED / 'returns_mismatch_2015_16.csv', index=False)
 mp = MM[MM.concordance == 'pass'].dropna(subset=['ER_c'])
 mm_sum = dict(mismatch_rows=len(MM), concordance_pass=int((MM.concordance == 'pass').sum()), with_ER_c=len(mp),
               ER_c_within_1pp_of_CRnic_minus_LR=int((mp.abs_diff_vs_CRnic_minus_LR <= 1).sum()),
@@ -389,14 +383,11 @@ tot4 = pd.concat([Q, EXC])[lambda d: d.quarter == 4].groupby('year').gwp.sum()
 SV = EXC[(EXC.quarter == 4) & EXC.year.between(2013, 2018)].copy()
 SV['market_share_pct'] = 100 * SV.gwp / SV.year.map(tot4)
 SV[['source_name', 'year', 'has_figures', 'gwp', 'market_share_pct', 'LR_wb', 'ER_wb', 'CR_wb']].to_csv(
-    CONFIDENTIAL / 'returns_survivorship.csv', index=False)
+    PROCESSED / 'returns_survivorship.csv', index=False)
 last_q = EXC.groupby('source_name').apply(lambda d: d[d.has_figures].sheet.iloc[-1] if d.has_figures.any() else 'none',
                                           include_groups=False)
 SVS = SV.groupby('year').agg(insurers=('source_name', 'nunique'), with_figures=('has_figures', 'sum'),
                              combined_market_share_pct=('market_share_pct', 'sum')).reset_index()
-# small cells: a 'combined' share over 1-2 insurers is an insurer-level workbook value (A2) -> suppressed here
-SVS['combined_market_share_pct'] = SVS.combined_market_share_pct.where(SVS.insurers >= 3)
-SVS['note'] = np.where(SVS.insurers >= 3, '', 'share suppressed (< 3 insurers); detail in data/processed/confidential/')
 SVS.to_csv(TABLES / 'returns_survivorship_summary.csv', index=False)
 
 # ---------------------------------------------------------------- printed summary
@@ -420,4 +411,4 @@ sv = SE[SE.section != 'industry_cumulative_share']
 print('\nSeasonality:'); print(SE[(SE.section == 'industry_cumulative_share') & (SE.statistic == 'premium')].pivot(index='year', columns='quarter', values='value').round(3).to_string())
 print(sv[['section', 'year', 'quarter', 'statistic', 'value']].round(3).to_string(index=False))
 print('Saved (aggregate): returns_units, returns_concordance, returns_mismatch_2015_16_summary, returns_nep_validation, '
-      'returns_nonsubmission, returns_survivorship_summary, seasonality (outputs/tables). Insurer-level: data/processed/confidential/')
+      'returns_nonsubmission, returns_survivorship_summary, seasonality (outputs/tables). Insurer-level: data/processed/')

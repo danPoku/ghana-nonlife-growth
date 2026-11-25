@@ -8,7 +8,7 @@ Variants: lags 2-4, and one-step. Sample: 2015-2022, start-ups dropped, pooled 1
 import contextlib, io, json
 import numpy as np, pandas as pd
 from pydynpd import regression   # 0.2.2 needs numpy < 2.4 (np.in1d, float() of 1x1 arrays): see requirements.txt
-from config import PROCESSED, TABLES, WINSOR, CONFIDENTIAL, QUARTERLY_FILE
+from config import PROCESSED, TABLES, WINSOR
 
 def run(pm, size, tag):
     """System GMM for LR, ER, CR on panel rows pm (2015-2022, start-ups dropped), size variable `size` (lagged)."""
@@ -64,19 +64,15 @@ C.to_csv(TABLES / 'system_gmm.csv', index=False)
 D.to_csv(TABLES / 'system_gmm_diagnostics.csv', index=False)
 
 # v2 (Part 5): same specification on the v2 panel: component-based outcomes (NEP + RIC basis), single growth measure,
-# ln(total assets) as size. Built only when the confidential v2 panel exists (NIC quarterly returns workbook).
-PV = CONFIDENTIAL / 'panel_v2.csv'
-if QUARTERLY_FILE.exists() and PV.exists():
-    V = pd.read_csv(PV)
-    pv = V[V.year.between(2015, 2022) & ~V.startup.astype(bool)].copy()
-    pv['LR'], pv['ER'], pv['CR'] = pv.LR_c, pv.ER_c, pv.CR_c
-    C2, D2, _ = run(pv, 'ln_assets', 'v2')
-    C2.to_csv(TABLES / 'system_gmm_v2.csv', index=False); D2.to_csv(TABLES / 'system_gmm_diagnostics_v2.csv', index=False)
-    print('v2 System GMM: lagged growth (L1.g)'); print(C2[C2.term == 'L1.g'].round(4).to_string(index=False))
-    print(D2.drop(columns=['command', 'hansen_j', 'n_insurers_panel']).round(3).to_string(index=False))
-else:
-    print('v2 System GMM skipped (NIC quarterly returns workbook absent).')
-
+# ln(total assets) as size (v2 panel from step 03).
+PV = PROCESSED / 'panel_v2.csv'
+V = pd.read_csv(PV)
+pv = V[V.year.between(2015, 2022) & ~V.startup.astype(bool)].copy()
+pv['LR'], pv['ER'], pv['CR'] = pv.LR_c, pv.ER_c, pv.CR_c
+C2, D2, _ = run(pv, 'ln_assets', 'v2')
+C2.to_csv(TABLES / 'system_gmm_v2.csv', index=False); D2.to_csv(TABLES / 'system_gmm_diagnostics_v2.csv', index=False)
+print('v2 System GMM: lagged growth (L1.g)'); print(C2[C2.term == 'L1.g'].round(4).to_string(index=False))
+print(D2.drop(columns=['command', 'hansen_j', 'n_insurers_panel']).round(3).to_string(index=False))
 # ---------- console report ----------
 pd.set_option('display.width', 160)
 print(f'v1 sample: {len(pm)} insurer-years, {N_INS} insurers, 2015-2022, start-ups excluded')

@@ -1,4 +1,4 @@
-year,insurers,with_figures,combined_market_share_pct,note
-2013,1,1,,share suppressed (< 3 insurers); detail in data/processed/confidential/
-2014,1,1,,share suppressed (< 3 insurers); detail in data/processed/confidential/
-2015,1,1,,share suppressed (< 3 insurers); detail in data/processed/confidential/
+year,insurers,with_figures,combined_market_share_pct
+2013,1,1,1.0833565782569072
+2014,1,1,1.099660384304873
+2015,1,1,1.184579077471832

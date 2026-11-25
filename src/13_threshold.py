@@ -23,15 +23,13 @@ RUN_REAL_DATA is set to True after the authors have reviewed the simulation resu
 """
 import sys
 import numpy as np, pandas as pd
-from config import CONFIDENTIAL, TABLES, QUARTERLY_FILE
+from config import PROCESSED, TABLES
 from models import dummies, absorb, fe
 
 RUN_REAL_DATA = True           # approved by the authors after reviewing the simulation results (Part 3, 21 Nov 2026)
 B_BOOT, N_SIM, SEED = 999, 200, 20261121
 C95 = -2 * np.log(1 - np.sqrt(0.95))
-ES = CONFIDENTIAL / 'estimation_sample_v2.csv'
-if not (QUARTERLY_FILE.exists() and ES.exists()):
-    print('Step 13 skipped: v2 estimation sample absent (NIC quarterly returns workbook not available).'); sys.exit(0)
+ES = PROCESSED / 'estimation_sample_v2.csv'
 
 class Threshold:
     """Pre-computes everything that depends only on (X, q, grid), so each outcome vector costs a few matrix products."""

@@ -23,7 +23,7 @@ ER_g and CR_g are left missing for those years (they are not estimated). The ind
 04 handles 2023-24 separately.
 """
 import pandas as pd, numpy as np, json, re
-from config import INTERIM, PROCESSED, RAW_MACRO, WDI_CPI_FILE, MERGERS, QUARTERLY_FILE, CONFIDENTIAL, TABLES
+from config import INTERIM, PROCESSED, RAW_MACRO, WDI_CPI_FILE, MERGERS, TABLES
 import tier1   # vintage rule, Tier 1 table and CR rule, shared with step 12 (A4)
 
 df, ins = tier1.preferred_long()
@@ -118,70 +118,66 @@ print(pd.DataFrame({'sum_insurers':chk.round(1),'NIC_Totals':nict}))
 print('startup rows',P.startup.sum(),'cr mismatches',P.cr_nic_mismatch.sum(), P[P.cr_nic_mismatch].year.value_counts().to_dict())
 
 # =====================================================================================================================
-# v2 analysis panel (Part 3a) -> data/processed/confidential/panel_v2.csv. Built only when the returns panel (step 12)
-# exists: it holds values derived from the NIC quarterly returns workbook (an NIC product; insurers' unaudited quarterly
-# submissions), which stay out of git (decision A2). panel_master.csv above stays Tier 1 only, so v1 is reproducible.
+# v2 analysis panel (Part 3a) -> data/processed/panel_v2.csv, from the returns panel (step 12; NIC quarterly returns
+# workbook, insurers' unaudited quarterly submissions). panel_master.csv above stays Tier 1 only, so v1 is reproducible.
 # =====================================================================================================================
-RP=CONFIDENTIAL/'returns_panel.csv'
-if not (QUARTERLY_FILE.exists() and RP.exists()):
-    print('v2 panel not built: NIC quarterly returns workbook or returns panel absent (public pipeline = v1 only).')
-else:
-    R=pd.read_csv(RP)
-    R=R[['insurer_id','year','concordance','annual_source','gwp','LR_a','ER_a','CR_a','LR_c','ER_c','ER_gross','ER_netric',
-         'COMM_r','MGT_r','ln_assets','TP_r','motor_share']].rename(columns={
-        'gwp':'gwp_ret','annual_source':'c_source','LR_c':'LR_ret','ER_c':'ER_ret','LR_a':'LR_c','ER_a':'ER_c','CR_a':'CR_c'})
-    V=P.merge(R,on=['insurer_id','year'],how='left')
-    V['concordance']=V.concordance.fillna('no Q4 row')
-    # Primary outcomes (authors' decision after Part 2): component-based on the NEP + RIC basis = returns where Q4 passes
-    # concordance, Tier 1 published where it fails or is missing (5 rows, 'filled from annual'); CR_c = LR_c + ER_c.
-    # 2015-16 Tier 1 correction: corroborated if the returns ER (pure, NEP + RIC basis) is within 5 pp of CR_nic - LR
-    V['er1516_corroborated']=np.where(fix1516.values,(V.ER_ret-(V.CR_nic-V.LR)).abs()<=5,np.nan)
-    V['er_t1_flag']=np.where(V.er1516_corroborated==1,'ER corrected (returns-corroborated)',
-                     np.where(V.er1516_corroborated==0,'ER corrected (not returns-corroborated)',''))
-    # 2020 published ER excludes commission (A20): replace with the returns ER (management + commission, NEP + RIC basis)
-    # where Q4 passes concordance; LOYALTY 2020 fails and keeps the published value. Built on ER_t1.
-    rep20=(V.year==2020)&(V.concordance=='pass')&V.ER_ret.notna()
-    V['ER_corr2020']=np.where(rep20,V.ER_ret,V.ER_t1); V['CR_corr2020']=V.LR+V.ER_corr2020
-    V['flag_er_corr2020']=np.where(rep20,'2020 ER corrected: published figure excludes commission (returns-corroborated)','')
-    # Single growth measure (3a, decision A5): exact GWP in every year where available. Audited exact GHS to 2019;
-    # returns GWP 2020-22 where Q4 passes concordance; 2015 from NIC's %-change table (no 2014 GWP, flagged); 2020-22
-    # rows whose GWP (t or t-1) is not exact fall back to NIC's %-change table (flagged); 2023 as v1 (rounded GHS m).
-    # Merger rule (D13) and consecutive-year rule unchanged. v1 growth kept as g_v1.
-    V['g_v1']=V.g; V['g_excess_v1']=V.g_excess
-    V['gwp_exact']=np.where(V.year<=2019,V.gwp,np.where(V.year.between(2020,2022)&(V.concordance=='pass'),V.gwp_ret,np.nan))
-    pe=V[['insurer_id','year','gwp_exact']].assign(year=V.year+1).rename(columns={'gwp_exact':'gwp_exact_prev'})
-    V=V.merge(pe,on=['insurer_id','year'],how='left')
-    ge=100*(V.gwp_exact/V.gwp_exact_prev-1)
-    y=V.year
-    V['g']=np.select([y==2015,y.between(2016,2019),y.between(2020,2022)&ge.notna(),y.between(2020,2022)&V.chg_gwp_pct.notna(),
-                      y.between(2020,2023)],[V.chg_gwp_pct,ge,ge,V.chg_gwp_pct,V.g_calc],default=np.nan)
-    V['g_source']=np.select([y==2015,y.between(2016,2019)&ge.notna(),y.between(2020,2022)&ge.notna(),
-                             y.between(2020,2022)&V.chg_gwp_pct.notna(),y.between(2020,2023)&V.g_calc.notna()],
-                            ['NIC change table (2015: no 2014 GWP)','computed exact GHS (audited)',
-                             'computed exact GHS (returns 2020-22, concordance pass)','NIC change table (fallback: GWP not exact in t or t-1)',
-                             'computed rounded GHS m (as v1)'],default='missing')
-    V.loc[V.merger_break|(V.year==2024),'g']=np.nan
-    V.loc[V.merger_break,'g_source']='not computed: merger year'; V.loc[V.year==2024,'g_source']='not computed: 2024 is Insurance Revenue'
-    V.loc[V.g.isna()&~V.g_source.str.startswith('not computed'),'g_source']='missing'
-    V['g_excess']=V.g-V.groupby('year').g.transform('median')
-    # cross-check of the exact 2020-22 growth against NIC's %-change table (aggregate, public)
-    x=V[V.g_source.str.startswith('computed exact GHS (returns')]; dd=(x.g-x.chg_gwp_pct).dropna()
-    xc=[dict(year=yr,n_exact_returns=int((x.year==yr).sum()),n_with_nic_table=int(d.notna().sum()),median_abs_diff_pp=d.abs().median(),
-             within_1pp=(d.abs()<=1).mean(),within_5pp=(d.abs()<=5).mean(),
-             n_fallback_nic_table=int(((V.year==yr)&V.g_source.str.startswith('NIC change table (fallback')).sum()))
-        for yr,d in [(yr,(x.g-x.chg_gwp_pct)[x.year==yr]) for yr in (2020,2021,2022)]]
-    pd.DataFrame(xc).to_csv(TABLES/'growth_v2_crosscheck.csv',index=False)
-    # lags on the insurer x year grid (a gap year gives a missing lag)
-    def lagged(D,cols,k):
-        s=D[['insurer_id','year']+cols].copy(); s['year']+=k
-        return D.merge(s.rename(columns={c:f'{c}_L{k}' for c in cols}),on=['insurer_id','year'],how='left')
-    V=V.drop(columns=['g_L1','g_excess_L1']).rename(columns={})
-    V=lagged(V,['g','g_excess','ln_assets','TP_r','claims_reserve_ratio','LR_c','ER_c','CR_c','g_v1','g_excess_v1'],1)
-    V=lagged(V,['g'],2)
-    V['g_L2']=np.where(V.year==2016,np.nan,V.g_L2)       # 2014 growth not available (decision A5)
-    V['motor_share_2021']=V.insurer_id.map(V[V.year==2021].set_index('insurer_id').motor_share)
-    V.to_csv(CONFIDENTIAL/'panel_v2.csv',index=False)
-    print(f"v2 panel: {len(V)} rows -> data/processed/confidential/panel_v2.csv; 2015-16 ER corrections {int(fix1516.sum())} "
-          f"(corroborated {int((V.er1516_corroborated==1).sum())}); 2020 ER corrections {int(rep20.sum())}")
-    print('g_source (v2), 2015-2023:', V[V.year.between(2015,2023)].g_source.value_counts().to_dict())
-    print(pd.DataFrame(xc).round(3).to_string(index=False))
+RP=PROCESSED/'returns_panel.csv'
+R=pd.read_csv(RP)
+R=R[['insurer_id','year','concordance','annual_source','gwp','LR_a','ER_a','CR_a','LR_c','ER_c','ER_gross','ER_netric',
+     'COMM_r','MGT_r','ln_assets','TP_r','motor_share']].rename(columns={
+    'gwp':'gwp_ret','annual_source':'c_source','LR_c':'LR_ret','ER_c':'ER_ret','LR_a':'LR_c','ER_a':'ER_c','CR_a':'CR_c'})
+V=P.merge(R,on=['insurer_id','year'],how='left')
+V['concordance']=V.concordance.fillna('no Q4 row')
+# Primary outcomes (authors' decision after Part 2): component-based on the NEP + RIC basis = returns where Q4 passes
+# concordance, Tier 1 published where it fails or is missing (5 rows, 'filled from annual'); CR_c = LR_c + ER_c.
+# 2015-16 Tier 1 correction: corroborated if the returns ER (pure, NEP + RIC basis) is within 5 pp of CR_nic - LR
+V['er1516_corroborated']=np.where(fix1516.values,(V.ER_ret-(V.CR_nic-V.LR)).abs()<=5,np.nan)
+V['er_t1_flag']=np.where(V.er1516_corroborated==1,'ER corrected (returns-corroborated)',
+                 np.where(V.er1516_corroborated==0,'ER corrected (not returns-corroborated)',''))
+# 2020 published ER excludes commission (A20): replace with the returns ER (management + commission, NEP + RIC basis)
+# where Q4 passes concordance; LOYALTY 2020 fails and keeps the published value. Built on ER_t1.
+rep20=(V.year==2020)&(V.concordance=='pass')&V.ER_ret.notna()
+V['ER_corr2020']=np.where(rep20,V.ER_ret,V.ER_t1); V['CR_corr2020']=V.LR+V.ER_corr2020
+V['flag_er_corr2020']=np.where(rep20,'2020 ER corrected: published figure excludes commission (returns-corroborated)','')
+# Single growth measure (3a, decision A5): exact GWP in every year where available. Audited exact GHS to 2019;
+# returns GWP 2020-22 where Q4 passes concordance; 2015 from NIC's %-change table (no 2014 GWP, flagged); 2020-22
+# rows whose GWP (t or t-1) is not exact fall back to NIC's %-change table (flagged); 2023 as v1 (rounded GHS m).
+# Merger rule (D13) and consecutive-year rule unchanged. v1 growth kept as g_v1.
+V['g_v1']=V.g; V['g_excess_v1']=V.g_excess
+V['gwp_exact']=np.where(V.year<=2019,V.gwp,np.where(V.year.between(2020,2022)&(V.concordance=='pass'),V.gwp_ret,np.nan))
+pe=V[['insurer_id','year','gwp_exact']].assign(year=V.year+1).rename(columns={'gwp_exact':'gwp_exact_prev'})
+V=V.merge(pe,on=['insurer_id','year'],how='left')
+ge=100*(V.gwp_exact/V.gwp_exact_prev-1)
+y=V.year
+V['g']=np.select([y==2015,y.between(2016,2019),y.between(2020,2022)&ge.notna(),y.between(2020,2022)&V.chg_gwp_pct.notna(),
+                  y.between(2020,2023)],[V.chg_gwp_pct,ge,ge,V.chg_gwp_pct,V.g_calc],default=np.nan)
+V['g_source']=np.select([y==2015,y.between(2016,2019)&ge.notna(),y.between(2020,2022)&ge.notna(),
+                         y.between(2020,2022)&V.chg_gwp_pct.notna(),y.between(2020,2023)&V.g_calc.notna()],
+                        ['NIC change table (2015: no 2014 GWP)','computed exact GHS (audited)',
+                         'computed exact GHS (returns 2020-22, concordance pass)','NIC change table (fallback: GWP not exact in t or t-1)',
+                         'computed rounded GHS m (as v1)'],default='missing')
+V.loc[V.merger_break|(V.year==2024),'g']=np.nan
+V.loc[V.merger_break,'g_source']='not computed: merger year'; V.loc[V.year==2024,'g_source']='not computed: 2024 is Insurance Revenue'
+V.loc[V.g.isna()&~V.g_source.str.startswith('not computed'),'g_source']='missing'
+V['g_excess']=V.g-V.groupby('year').g.transform('median')
+# cross-check of the exact 2020-22 growth against NIC's %-change table (aggregate, public)
+x=V[V.g_source.str.startswith('computed exact GHS (returns')]; dd=(x.g-x.chg_gwp_pct).dropna()
+xc=[dict(year=yr,n_exact_returns=int((x.year==yr).sum()),n_with_nic_table=int(d.notna().sum()),median_abs_diff_pp=d.abs().median(),
+         within_1pp=(d.abs()<=1).mean(),within_5pp=(d.abs()<=5).mean(),
+         n_fallback_nic_table=int(((V.year==yr)&V.g_source.str.startswith('NIC change table (fallback')).sum()))
+    for yr,d in [(yr,(x.g-x.chg_gwp_pct)[x.year==yr]) for yr in (2020,2021,2022)]]
+pd.DataFrame(xc).to_csv(TABLES/'growth_v2_crosscheck.csv',index=False)
+# lags on the insurer x year grid (a gap year gives a missing lag)
+def lagged(D,cols,k):
+    s=D[['insurer_id','year']+cols].copy(); s['year']+=k
+    return D.merge(s.rename(columns={c:f'{c}_L{k}' for c in cols}),on=['insurer_id','year'],how='left')
+V=V.drop(columns=['g_L1','g_excess_L1']).rename(columns={})
+V=lagged(V,['g','g_excess','ln_assets','TP_r','claims_reserve_ratio','LR_c','ER_c','CR_c','g_v1','g_excess_v1'],1)
+V=lagged(V,['g'],2)
+V['g_L2']=np.where(V.year==2016,np.nan,V.g_L2)       # 2014 growth not available (decision A5)
+V['motor_share_2021']=V.insurer_id.map(V[V.year==2021].set_index('insurer_id').motor_share)
+V.to_csv(PROCESSED/'panel_v2.csv',index=False)
+print(f"v2 panel: {len(V)} rows -> data/processed/panel_v2.csv; 2015-16 ER corrections {int(fix1516.sum())} "
+      f"(corroborated {int((V.er1516_corroborated==1).sum())}); 2020 ER corrections {int(rep20.sum())}")
+print('g_source (v2), 2015-2023:', V[V.year.between(2015,2023)].g_source.value_counts().to_dict())
+print(pd.DataFrame(xc).round(3).to_string(index=False))
