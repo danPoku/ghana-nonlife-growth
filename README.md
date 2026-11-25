@@ -37,12 +37,12 @@ needs a confidential file that is not included; the step skips without it. The v
 | 12 | `src/12_returns_panel.py` | Returns panel (Tier 2) from the NIC quarterly returns workbook: insurer-level → `data/processed/`; concordance, seasonality, survivorship, non-submission → `outputs/tables/returns_*.csv`, `seasonality.csv`. Runs before step 3 |
 | 3 | `src/03_build_panel.py` | Insurer-year panel → `data/processed/panel_master.csv` |
 | 4 | `src/04_analysis.py` | Descriptives, TWFE models, diagnostics, wild cluster bootstrap, dynamic check, gross-basis robustness → `outputs/tables/` |
-| 5 | `src/05_figures.py` | Figures 1–5 (v1) and, with the workbook, v2 Figures 1-5, 7 (year-specific MID slopes) and 8 (seasonality) → `outputs/figures/` |
+| 5 | `src/05_figures.py` | Thesis Figures 1–7 → `outputs/figures/Figure_N_*.png` (Figure 8 from step 10) |
 | 6 | `src/06_facultative.py` | Supplementary facultative-reinsurance appendix (skipped if confidential file absent) |
 | 7 | `src/07_validate.py` | Data-fidelity and pinned-result checks |
 | 8 | `src/08_system_gmm.py` | System GMM robustness (pydynpd) → `outputs/tables/system_gmm*.csv` |
 | 9 | `src/09_total_assets.py` | Total assets as size control, from the NIC quarterly returns workbook → `outputs/tables/robust_total_assets*.csv` |
-| 10 | `src/10_leave_one_out.py` | Leave-one-insurer-out re-estimation of M1 → `outputs/tables/robust_leave_one_out*.csv`, Figure 6 |
+| 10 | `src/10_leave_one_out.py` | Leave-one-insurer-out re-estimation of M1 → `outputs/tables/robust_leave_one_out*.csv`, thesis Figure 8 |
 | 11 | `src/11_cr_mismatch.py` | NIC printed CR vs LR + ER, 2015-16 → `outputs/tables/cr_mismatch_analysis.csv` |
 | 13 | `src/13_threshold.py` | Hansen (1999) threshold test (simulation validation, then real data) → `threshold_simulation.csv`, `threshold_v2.csv` |
 | 14 | `src/14_appendix.py` | Thesis appendix tables `outputs/tables/appendix_*.csv` (FE models, diagnostics, GMM, replication, early warning, robustness, seasonality, concordance) |
@@ -58,7 +58,7 @@ needs a confidential file that is not included; the step skips without it. The v
   together with `foreign_cedants.txt` (one foreign cedant name per line, also confidential).
   Step 6 outputs (`outputs/tables/fac_*`) are git-ignored for the same reason.
 - **Macro data:** `data/raw/macro/` holds an offline snapshot of World Bank WDI `FP.CPI.TOTL.ZG`
-  (Ghana annual-average CPI inflation, orig. GSS), used to deflate premium growth (`g_real`, Figure 5).
+  (Ghana annual-average CPI inflation, orig. GSS), used to deflate premium growth (`g_real`, Figure 3).
   The pipeline reads only the snapshot, so it runs offline and is reproducible. To refresh it, run
   `python src/00_fetch_macro.py` (not part of `run_all.py`), then rerun the pipeline.
 - `data/raw/quarterly/` — NIC quarterly returns workbook, Market Report Q2 2026 edition (retrieved 21 Nov 2026; read

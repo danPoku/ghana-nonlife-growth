@@ -108,7 +108,7 @@ One element changed at a time, M1, two-way FE, clustered SEs (D12), bootstrap p 
 - Pooled OLS of each outcome on the M1 regressors, their insurer means (over observed years), year dummies and the insurer means of the year dummies (required for exact equivalence in an unbalanced panel; Wooldridge, 2021, Theorem 3.1 and Section 9.1); insurer-clustered SEs. Within coefficients equal models.fe to 1e-12 (checked in 07).
 - **Within vs between** (v2): size -> ER within +3.5, between-type -12.1 per log unit (p = 0.043); size -> CR between -11.1 (p = 0.017). Growth -> ER between -0.25 (p = 0.010), growth -> CR between -0.28 (p = 0.013): insurers that grow faster on average have LOWER expense and combined ratios, while an insurer's own faster growth does not change its ratios (within +0.016, p = 0.86).
 - Robust variable-addition test that all regressor means are zero (replaces the classical Hausman test): p = 0.61 (LR), 0.17 (ER), 0.35 (CR). The classical Hausman test also does not reject (p = 0.13-0.23).
-- **Reading the growth-quartile figure (Figure 3):** the pattern of lower ratios in higher growth quartiles reflects between-insurer differences, not within-insurer growth effects.
+- **Reading the growth-quartile figure (Figure 5):** the pattern of lower ratios in higher growth quartiles reflects between-insurer differences, not within-insurer growth effects.
 
 ## D19 note: year-specific MID test (RQ3)
 - M1 + g(t-1) x D2020, D2021, D2022 (base 2016-19). CR: +0.10, +0.06, +0.03, none significant; joint = 0 p = 0.84; equality p = 0.82. ER: 2020 +0.16 (clustered p 0.018, bootstrap 0.13); joint p = 0.08.
@@ -189,5 +189,5 @@ The step runs after 07_validate.py and its results are **not pinned**.
 - **Growth between insurers:** faster-growing insurers have lower average ER and CR (Mundlak; -0.25 and -0.28, p = 0.010 and 0.013); the quartile pattern (Figure 3) is this between-insurer difference.
 - **MID (RQ3):** no year-specific change in the growth slope on CR (joint p = 0.84); 2020 not different from 2021-22 (p = 0.82); no clear pre-trend.
 - **Reverse regression:** no support for "weak insurers shrink" (CR(t-1) -> g(t) +0.09, p = 0.44).
-- **Expenses dominate:** component-based ER is 70-99% of NEP + RIC against LR 30-50% (Figure 2, v2).
+- **Expenses dominate:** component-based ER is 70-99% of NEP + RIC against LR 30-50% (Figure 2).
 - **Diagnostics (v2):** Hausman and Mundlak tests do not reject; heteroskedasticity; serial correlation not significant for LR, ER (CR p = 0.08); cross-sectional dependence significant for ER (Pesaran p = 0.011; limitation, D22; Driscoll-Kraay as an indicative check changes nothing).

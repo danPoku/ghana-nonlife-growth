@@ -1,4 +1,4 @@
-"""Step 10 (robustness): leave-one-insurer-out re-estimation of M1, v1 and (with the NIC workbook) v2.
+"""Step 10 (robustness): leave-one-insurer-out re-estimation of M1, v1 and v2.
 
 Question an examiner will ask: does the headline depend on any single insurer? For each insurer in the
 estimation sample, drop it and re-estimate M1 for LR_w, ER_w and CR_w with models.fe (D12 convention),
@@ -6,9 +6,9 @@ recording growth (g_L1_w) and size (v1: ln_gwp_L1; v2: ln_assets_L1).
 
 WINSORISING: the existing _w values in the estimation sample are used unchanged. Bounds are NOT recomputed
 after dropping an insurer, so each run changes only the sample, not the variable definitions.
-v1: estimation_sample.csv, checked against regressions.csv -> robust_leave_one_out*.csv, F6_leave_one_out.png.
+v1: estimation_sample.csv, checked against regressions.csv -> robust_leave_one_out*.csv (the v1 figure is frozen in outputs/figures/v1/).
 v2: data/processed/estimation_sample_v2.csv, checked against main_models_v2.csv
--> robust_leave_one_out*_v2.csv (aggregate), F6_leave_one_out_v2.png.
+-> robust_leave_one_out*_v2.csv (aggregate) and thesis Figure 8 (Figure_8_leave_one_out.png).
 """
 import numpy as np, pandas as pd
 import matplotlib; matplotlib.use('Agg')
@@ -43,8 +43,8 @@ def loo(E, X, terms, ref_coef):
                              most_influential=d.loc[dev.idxmax(), 'dropped'], max_abs_shift=dev.max()))
     return L, pd.DataFrame(summ), full
 
-def figure(L, full, title, note, path):
-    """F6: g_L1_w with 95% CI per dropped insurer, one panel per outcome, same insurer order in every panel.
+def figure(L, full, title, path):
+    """Thesis Figure 8: g_L1_w with 95% CI per dropped insurer, one panel per outcome, same insurer order in every panel.
     The full-sample estimate is the dashed line, with its value in the panel title (no floating label)."""
     ink, accent = '#333333', '#2e75b6'
     f, axs = plt.subplots(1, 3, figsize=(10, 7.5), sharey=True)
@@ -58,10 +58,9 @@ def figure(L, full, title, note, path):
         for s in ('top', 'right'): ax.spines[s].set_visible(False)
     axs[0].set_yticks(range(len(order))); axs[0].set_yticklabels(order); axs[0].set_ylabel('Insurer dropped', fontsize=8)
     axs[0].set_ylim(len(order) - .5, -.5)
-    f.supxlabel('Coefficient on lagged premium growth: pp change in the ratio per 1 pp of growth (95% CI)', fontsize=8, y=.06)
+    f.supxlabel('Coefficient on lagged premium growth: pp change in the ratio per 1 pp of growth (95% CI)', fontsize=8)
     f.suptitle(title, x=.01, ha='left', fontsize=10)
-    f.text(.01, .005, note, fontsize=7, color='#666666')
-    f.tight_layout(rect=(0, .08, 1, .97)); f.savefig(path, dpi=200); plt.close(f)
+    f.tight_layout(); f.savefig(path, dpi=200); plt.close(f)
 
 pd.set_option('display.width', 200)
 # ---------- v1 (public, Tier 1 only) ----------
@@ -70,9 +69,6 @@ T4 = pd.read_csv(TABLES / 'regressions.csv')
 ref1 = lambda y, t: tuple(T4[(T4.model == f'{y}|M1_linear|cluster') & (T4.term == t)].iloc[0][['coef', 'se']])
 L, S, full = loo(E, ['g_L1_w', 'RET', 'ln_gwp_L1', 'LEV_net_L1_w'], ['g_L1_w', 'ln_gwp_L1'], ref1)
 L.to_csv(TABLES / 'robust_leave_one_out.csv', index=False); S.to_csv(TABLES / 'robust_leave_one_out_summary.csv', index=False)
-figure(L, full, 'Figure 6. Leave-one-insurer-out: effect of lagged premium growth (M1, two-way FE; v1)',
-       'v1: estimation sample 2016-2022 (176 insurer-years); each row re-estimates M1 without that insurer;\n'
-       'winsorised values unchanged; insurer-clustered SEs (D12).', FIGURES / 'F6_leave_one_out.png')
 print('v1:'); print(S.round(4).to_string(index=False))
 # ---------- v2 (thesis) ----------
 E2p, MV = PROCESSED / 'estimation_sample_v2.csv', TABLES / 'main_models_v2.csv'
@@ -80,8 +76,7 @@ E2 = pd.read_csv(E2p); M = pd.read_csv(MV)
 ref2 = lambda y, t: tuple(M[(M.block == 'main') & (M.model == 'M1') & (M.outcome == y) & (M.term == t)].iloc[0][['coef', 'se']])
 L2, S2, full2 = loo(E2, ['g_L1_w', 'RET', 'ln_assets_L1', 'LEV_net_L1_w'], ['g_L1_w', 'ln_assets_L1'], ref2)
 L2.to_csv(TABLES / 'robust_leave_one_out_v2.csv', index=False); S2.to_csv(TABLES / 'robust_leave_one_out_summary_v2.csv', index=False)
-figure(L2, full2, 'Figure 6 (v2). Leave-one-insurer-out: effect of lagged premium growth (M1, two-way FE)',
-       'v2: estimation sample 2016-2022 (171 insurer-years), component-based outcomes, ln(assets) as size; each row re-estimates M1\n'
-       'without that insurer; winsorised values unchanged; insurer-clustered SEs (D12).', FIGURES / 'F6_leave_one_out_v2.png')
+figure(L2, full2, 'Figure 8. Leave-one-insurer-out: effect of lagged premium growth (M1, two-way FE)',
+       FIGURES / 'Figure_8_leave_one_out.png')
 print('v2:'); print(S2.round(4).to_string(index=False))
-print('Saved: robust_leave_one_out*.csv, F6_leave_one_out*.png')
+print('Saved: robust_leave_one_out*.csv, Figure_8_leave_one_out.png')

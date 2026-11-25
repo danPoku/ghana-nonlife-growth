@@ -22,14 +22,15 @@ data/raw/CHECKSUMS (all raw inputs; read by config.py). The pipeline always runs
   main_models_v2.csv, rq3_tests_v2.csv, cre_mundlak_v2.csv, industry_trends_v2.csv, v1_v2_bridge*.csv, growth_quartiles_v2.csv,
   exits.csv, appendix_robustness.csv (ownership changes: RENAMES in src/config.py); also the gross-basis robustness (LR_g/ER_g/CR_g = ratio x RET/100,
   data_issues A16): robust_gross_basis.csv, industry_trends_gross.csv, er_ret_correlation.csv (not pinned)
-- 05 figures -> outputs/figures (v1 F1-F6; v2: F1_v2_combined_ratio_component_vs_published.png, F3_growth_quartiles_v2.png)
+- 05 thesis Figures 1-7 -> outputs/figures/Figure_N_*.png (thesis numbering; no footnotes, the captions carry the notes);
+  Figure 8 from step 10. v1 figures frozen in outputs/figures/v1/ (not redrawn)
 - 06 facultative appendix (skips if confidential file absent)
 - 07 validation: 48 checks incl. two pinned sets, "v1 (public, Tier 1 only)" and "v2 (thesis, requires NIC workbook)"
   Must pass before results are used.
   Estimation sample: 176 insurer-years, 2016-2022 (177 before the D13 merger rule).
 - 08 System GMM robustness (pydynpd); runs after 07, results not pinned; v1 -> system_gmm*.csv, v2 -> system_gmm*_v2.csv
 - 09 total assets as size control from the NIC quarterly returns workbook; not pinned
-- 10 leave-one-insurer-out for M1 (growth and size); not pinned; v1 and v2 (robust_leave_one_out*_v2.csv, F6_leave_one_out_v2.png)
+- 10 leave-one-insurer-out for M1 (growth and size); not pinned; v1 and v2 (robust_leave_one_out*_v2.csv, Figure_8_leave_one_out.png)
 - 11 NIC printed CR vs LR+ER mismatch analysis (2015-16) -> cr_mismatch_analysis.csv; counts pinned in 07
 - 13 Hansen (1999) threshold test on g_L1 (v2): simulation validation -> threshold_simulation.csv; real data only when
   RUN_REAL_DATA = True (approved; threshold_v2.csv). Wild bootstrap under the null (departure from Hansen, D20)

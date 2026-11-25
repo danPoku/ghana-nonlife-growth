@@ -284,7 +284,7 @@ def run():
     f_ = BR[(BR.step.str.startswith('F')) & (BR.outcome == 'CR_w') & (BR.term == 'growth')].coef.iloc[0]
     assert abs(f_ - fits[('CR_w', 'M1')].params['g_L1_w']) < 1e-10, 'bridge step F differs from the v2 primary M1'
     BR.to_csv(TABLES / 'v1_v2_bridge.csv', index=False); pd.DataFrame(brm).to_csv(TABLES / 'v1_v2_bridge_mundlak.csv', index=False)
-    # ---------- growth quartiles on v2 data (Figure 3) ----------
+    # ---------- growth quartiles on v2 data (thesis Figure 5) ----------
     Bq = B.copy(); Bq['gq'] = pd.qcut(Bq.g_excess_L1, 4, labels=['Q1 lowest', 'Q2', 'Q3', 'Q4 highest'])
     Bq.groupby('gq', observed=True).agg(n=('LR_w', 'size'), g_excess_L1=('g_excess_L1', 'median'), LR=('LR_w', 'mean'),
         ER=('ER_w', 'mean'), CR=('CR_w', 'mean'), share_CR_gt100=('CR_w', lambda s: (s > 100).mean() * 100)).round(1) \
