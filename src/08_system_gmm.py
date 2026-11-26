@@ -10,64 +10,72 @@ import numpy as np, pandas as pd
 from pydynpd import regression   # 0.2.2 needs numpy < 2.4 (np.in1d, float() of 1x1 arrays): see requirements.txt
 from config import PROCESSED, TABLES, WINSOR
 
-P = pd.read_csv(PROCESSED / 'panel_master.csv')
-pm = P[P.year.between(2015, 2022) & ~P.startup.astype(bool)].copy()
-for v in ['LR', 'ER', 'CR', 'g', 'LEV_net']:
-    a, b = pm[v].quantile(list(WINSOR)); pm[v] = pm[v].clip(a, b)
-pm['ln_gwp'] = np.log(pm.gwp)
-# pydynpd fills its insurer x year grid in row order without sorting, so the order must be fixed here
-pm = pm.sort_values(['insurer_id', 'year']).reset_index(drop=True)
-assert not pm.duplicated(['insurer_id', 'year']).any(), 'duplicate insurer-years'
-VARS = ['LR', 'ER', 'CR', 'g', 'RET', 'ln_gwp', 'LEV_net']
-N_INS = pm.insurer_id.nunique()
+def run(pm, size, tag):
+    """System GMM for LR, ER, CR on panel rows pm (2015-2022, start-ups dropped), size variable `size` (lagged)."""
+    for v in ['LR', 'ER', 'CR', 'g', 'LEV_net']:
+        a, b = pm[v].quantile(list(WINSOR)); pm[v] = pm[v].clip(a, b)
+    # pydynpd fills its insurer x year grid in row order without sorting, so the order must be fixed here
+    pm = pm.sort_values(['insurer_id', 'year']).reset_index(drop=True)
+    assert not pm.duplicated(['insurer_id', 'year']).any(), 'duplicate insurer-years'
+    VARS = ['LR', 'ER', 'CR', 'g', 'RET', size, 'LEV_net']
+    def usable(y):
+        """Insurers / obs entering the differenced equation, with lags taken on the full year grid (gaps -> NaN)."""
+        g = pm.set_index(['insurer_id', 'year'])[VARS].reindex(pd.MultiIndex.from_product([pm.insurer_id.unique(), range(2015, 2023)], names=['insurer_id', 'year']))
+        L = lambda s, k=1: g.groupby(level=0)[s].shift(k)
+        lev = pd.concat([g[y], L(y), L('g'), g.RET, L(size), L('LEV_net')], axis=1).notna().all(axis=1)
+        ok = lev & lev.groupby(level=0).shift(1, fill_value=False)
+        ok = ok[ok.index.get_level_values('year') >= 2017]   # first differenced period given lag-1 regressors
+        return int(ok.sum()), ok[ok].index.get_level_values(0).nunique()
+    def fit(cmd):
+        out = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(out):
+                m = regression.abond(cmd, pm[['insurer_id', 'year'] + VARS].copy(), ['insurer_id', 'year'])
+        except SystemExit:   # pydynpd calls exit() (code 0) on a bad command; make that a real failure
+            raise RuntimeError(f'pydynpd rejected: {cmd}\n{out.getvalue()}')
+        return m.models[0]
+    coefs, diags = [], []
+    for var, (lags, opts) in VARIANTS.items():
+        for y in ['LR', 'ER', 'CR']:
+            cmd = f'{y} L1.{y} L1.g RET L1.{size} L1.LEV_net | gmm({y}, {lags}) gmm(g, {lags}) iv(RET L1.{size} L1.LEV_net) | {opts}'
+            m = fit(cmd)
+            t = m.regression_table.rename(columns={'variable': 'term', 'coefficient': 'coef', 'std_err': 'se', 'z_value': 'z', 'p_value': 'p'})
+            coefs.append(t[['term', 'coef', 'se', 'z', 'p']].assign(variant=var, outcome=y))
+            n_obs, n_ins = usable(y)
+            assert n_obs == m.num_obs, f'{tag} {var} {y}: own obs count {n_obs} != pydynpd {m.num_obs} (lag/gap handling differs)'
+            ar = {a.lag: a.P_value for a in m.AR_list}
+            k = m.z_information.num_instr
+            diags.append(dict(variant=var, outcome=y, n_obs=m.num_obs, n_insurers=n_ins, n_insurers_panel=m.N,
+                              n_instruments=k, ar1_p=ar[1], ar2_p=ar[2], hansen_j=m.hansen.test_value,
+                              hansen_df=m.hansen.df, hansen_p=m.hansen.p_value,
+                              instr_lt_insurers=k < n_ins, ar1_rejects=ar[1] < 0.05, ar2_ok=ar[2] >= 0.10,
+                              hansen_ok=0.10 < m.hansen.p_value < 0.99, command=cmd))
+    return pd.concat(coefs)[['variant', 'outcome', 'term', 'coef', 'se', 'z', 'p']], pd.DataFrame(diags), pm
 
 VARIANTS = {'baseline': ('2:3', 'timedumm collapse'),
             'lags2_4': ('2:4', 'timedumm collapse'),
             'onestep': ('2:3', 'timedumm collapse onestep')}
-
-def usable(y):
-    """Insurers / obs entering the differenced equation, with lags taken on the full year grid (gaps -> NaN)."""
-    g = pm.set_index(['insurer_id', 'year'])[VARS].reindex(pd.MultiIndex.from_product([pm.insurer_id.unique(), range(2015, 2023)], names=['insurer_id', 'year']))
-    L = lambda s, k=1: g.groupby(level=0)[s].shift(k)
-    lev = pd.concat([g[y], L(y), L('g'), g.RET, L('ln_gwp'), L('LEV_net')], axis=1).notna().all(axis=1)
-    ok = lev & lev.groupby(level=0).shift(1, fill_value=False)
-    ok = ok[ok.index.get_level_values('year') >= 2017]   # first differenced period given lag-1 regressors
-    return int(ok.sum()), ok[ok].index.get_level_values(0).nunique()
-
-def fit(cmd):
-    out = io.StringIO()
-    try:
-        with contextlib.redirect_stdout(out):
-            m = regression.abond(cmd, pm[['insurer_id', 'year'] + VARS].copy(), ['insurer_id', 'year'])
-    except SystemExit:   # pydynpd calls exit() (code 0) on a bad command; make that a real failure
-        raise RuntimeError(f'pydynpd rejected: {cmd}\n{out.getvalue()}')
-    return m.models[0]
-
-coefs, diags = [], []
-for var, (lags, opts) in VARIANTS.items():
-    for y in ['LR', 'ER', 'CR']:
-        cmd = f'{y} L1.{y} L1.g RET L1.ln_gwp L1.LEV_net | gmm({y}, {lags}) gmm(g, {lags}) iv(RET L1.ln_gwp L1.LEV_net) | {opts}'
-        m = fit(cmd)
-        t = m.regression_table.rename(columns={'variable': 'term', 'coefficient': 'coef', 'std_err': 'se', 'z_value': 'z', 'p_value': 'p'})
-        coefs.append(t[['term', 'coef', 'se', 'z', 'p']].assign(variant=var, outcome=y))
-        n_obs, n_ins = usable(y)
-        assert n_obs == m.num_obs, f'{var} {y}: own obs count {n_obs} != pydynpd {m.num_obs} (lag/gap handling differs)'
-        ar = {a.lag: a.P_value for a in m.AR_list}
-        k = m.z_information.num_instr
-        diags.append(dict(variant=var, outcome=y, n_obs=m.num_obs, n_insurers=n_ins, n_insurers_panel=m.N,
-                          n_instruments=k, ar1_p=ar[1], ar2_p=ar[2], hansen_j=m.hansen.test_value,
-                          hansen_df=m.hansen.df, hansen_p=m.hansen.p_value,
-                          instr_lt_insurers=k < n_ins, ar1_rejects=ar[1] < 0.05, ar2_ok=ar[2] >= 0.10,
-                          hansen_ok=0.10 < m.hansen.p_value < 0.99, command=cmd))
-
-C = pd.concat(coefs)[['variant', 'outcome', 'term', 'coef', 'se', 'z', 'p']]
-D = pd.DataFrame(diags)
+P = pd.read_csv(PROCESSED / 'panel_master.csv')
+pm = P[P.year.between(2015, 2022) & ~P.startup.astype(bool)].copy()
+pm['ln_gwp'] = np.log(pm.gwp)
+C, D, pm = run(pm, 'ln_gwp', 'v1')
+N_INS = pm.insurer_id.nunique()
 C.to_csv(TABLES / 'system_gmm.csv', index=False)
 D.to_csv(TABLES / 'system_gmm_diagnostics.csv', index=False)
 
+# v2 (Part 5): same specification on the v2 panel: component-based outcomes (NEP + RIC basis), single growth measure,
+# ln(total assets) as size (v2 panel from step 03).
+PV = PROCESSED / 'panel_v2.csv'
+V = pd.read_csv(PV)
+pv = V[V.year.between(2015, 2022) & ~V.startup.astype(bool)].copy()
+pv['LR'], pv['ER'], pv['CR'] = pv.LR_c, pv.ER_c, pv.CR_c
+C2, D2, _ = run(pv, 'ln_assets', 'v2')
+C2.to_csv(TABLES / 'system_gmm_v2.csv', index=False); D2.to_csv(TABLES / 'system_gmm_diagnostics_v2.csv', index=False)
+print('v2 System GMM: lagged growth (L1.g)'); print(C2[C2.term == 'L1.g'].round(4).to_string(index=False))
+print(D2.drop(columns=['command', 'hansen_j', 'n_insurers_panel']).round(3).to_string(index=False))
 # ---------- console report ----------
 pd.set_option('display.width', 160)
-print(f'Sample: {len(pm)} insurer-years, {N_INS} insurers, 2015-2022, start-ups excluded')
+print(f'v1 sample: {len(pm)} insurer-years, {N_INS} insurers, 2015-2022, start-ups excluded')
 print('\nDiagnostics:')
 print(D.drop(columns=['command', 'hansen_j', 'n_insurers_panel']).round(3).to_string(index=False))
 for _, r in D.iterrows():

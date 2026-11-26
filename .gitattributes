@@ -2,3 +2,6 @@
 data/raw/nic_text/*.txt -text
 # WDI snapshot: keep the raw API response byte-for-byte
 data/raw/macro/*.json -text
+# NIC quarterly returns workbook and the checksum list: byte-for-byte
+data/raw/quarterly/*.xlsx binary
+data/raw/CHECKSUMS -text

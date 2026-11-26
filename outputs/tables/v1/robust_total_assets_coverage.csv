@@ -1,0 +1,9 @@
+year,insurers_in_q4_sheet,with_total_assets,concordance_pass,concordance_fail,nonpositive,final_with_assets,copy_forward,copy_forward_kept,copy_forward_dropped,concordance_failed_ids,jump_flagged
+2015,23,23,23,0,0,23,0,,,,
+2016,25,24,24,0,0,24,0,,,,
+2017,27,27,27,0,0,27,1,GLICO_GEN,,,
+2018,29,29,27,2,0,27,0,,,MULTI;SERENE,
+2019,29,29,28,1,0,28,1,,ALLIANZ,ALLIANZ,
+2020,29,28,26,2,0,26,0,,,LOYALTY;MULTI,SERENE
+2021,26,26,26,0,0,26,0,,,,
+2022,26,26,26,0,0,26,0,,,,

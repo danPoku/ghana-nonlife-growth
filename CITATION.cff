@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite it as below."
+title: "Premium Growth and Underwriting Losses in Ghana's Non-Life Insurance Industry: data and analysis pipeline"
+type: software
+authors:
+  - family-names: Sarfo
+    given-names: Bismark Kantanka
+    affiliation: University of Ghana
+  - family-names: Poku
+    given-names: Dan Gyinaye
+    affiliation: University of Ghana
+    orcid: "https://orcid.org/0009-0004-0358-7414"
+repository-code: "https://github.com/danPoku/ghana-nonlife-growth"
+url: "https://github.com/danPoku/ghana-nonlife-growth"
+version: v2.0-thesis
+date-released: 2026-11-26
+license: MIT
+keywords:
+  - non-life insurance
+  - premium growth
+  - underwriting performance
+  - combined ratio
+  - panel data
+  - Ghana

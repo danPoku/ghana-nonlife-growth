@@ -1,4 +1,5 @@
-# Confidential: reinsurer production data contains client (insured) names.
+# Confidential: reinsurer production data contains client (insured) names; foreign_cedants.txt lives beside it.
+# Never tracked, never committed (the facultative step 06 skips without them).
 data/raw/production/
 data/processed/fac_production_clean.csv
 data/processed/fac_cedant_year_summary.csv
@@ -19,8 +20,6 @@ outputs/tables/fac_*
 # Personal scratch workbook: never track
 data/processed/panel_master_roughwork.xlsx
 
-# NIC quarterly returns workbook: unaudited, confidential pending source confirmation (data_issues A15)
-data/raw/quarterly/
-
-# Outputs derived from the confidential quarterly returns workbook (step 09)
-data/processed/confidential/
+# The NIC quarterly returns workbook (data/raw/quarterly/) is published by the NIC on its website and is TRACKED
+# (edition: Q2 2026; source and retrieval date in data/raw/quarterly/SOURCE.md; SHA-256 in data/raw/CHECKSUMS).
+# Insurer-level files derived from it (data/processed/, experiments/early_warning/outputs/) are tracked too.

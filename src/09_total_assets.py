@@ -1,8 +1,9 @@
 """Step 9 (robustness): total assets as the size control, from the NIC quarterly returns workbook.
 
 The defence specified ln(total assets) (D1), but NIC annual reports do not publish assets per insurer,
-so the main models use ln(lagged GWP). The quarterly returns workbook (unaudited, CONFIDENTIAL,
-data_issues A15) has total assets per insurer per quarter. Q4 sheets only: assets are a year-end stock.
+so the main models use ln(lagged GWP). The NIC quarterly returns workbook (an NIC product, source confirmed;
+the figures are insurers' unaudited quarterly submissions; published by the NIC, tracked, data_issues A15, A17) has total
+assets per insurer per quarter. Q4 sheets only: assets are a year-end stock. Reading rules: src/returns_io.py.
 
 Filters (counts reported in robust_total_assets_coverage.csv):
   (a) copy-forward, REPORT-ONLY: Q4 row identical to Q3 on all shared reported money columns (ratios and
@@ -12,55 +13,34 @@ Filters (counts reported in robust_total_assets_coverage.csv):
   (c) non-positive assets -> missing
   (d) jump, REPORT-ONLY: assets > 3x or < 1/3 of the previous year
 Models reuse models.fe (D12) on estimation_sample.csv without re-winsorising.
-Skips (exit 0) if the workbook is absent, so the public pipeline still runs.
 """
-import re, sys
+import sys
 import numpy as np, pandas as pd
-from config import QUARTERLY_FILE, CONFIDENTIAL, PROCESSED, TABLES
-from names import canon
+from config import PROCESSED, TABLES
 from models import fe, twdm, wcb
-if not QUARTERLY_FILE.exists():
-    print("Quarterly returns workbook not found; skipping step 9."); sys.exit(0)
-import openpyxl
+from returns_io import map_id, sheet_quarter, header_row, data_rows, open_workbook   # shared with step 12
 
 YEARS = range(2015, 2023)          # years with audited panel GWP for the concordance check
-HDR_NAME = ('company', 'non-life insurer', 'non life insurers')
 HDR_GWP = ('gross written premium', 'gross premium', 'gross premiums')
-ALIASES = [(r'^gn insurance', 'BEDROCK', None), (r'^equity assurance', 'SUNU', None),
-           (r'^regency insurance', 'REGENCYNEM', 2015)]          # (pattern, id, last year valid)
-EXCLUDE = [r'^nem insurance', r'^industrial\s*(&|and)\s*general']  # not in the panel
-norm = lambda v: re.sub(r'\s+', ' ', str(v)).strip().lower() if v is not None else ''
-
-def map_id(name, year):
-    n = norm(name).replace('*', '')
-    if any(re.search(p, n) for p in EXCLUDE): return 'EXCLUDED'
-    for p, cid, last in ALIASES:
-        if re.search(p, n) and (last is None or year <= last): return cid
-    return canon(str(name))
 
 def read_sheet(ws, year):
     """Rows below the LAST header row (earlier ones are INDEX lookup blocks), stopping at a total row."""
     rows = list(ws.iter_rows(values_only=True))
-    h = [i for i, r in enumerate(rows) if any(norm(c) in HDR_NAME for c in r)][-1]
-    hn = [norm(c) for c in rows[h]]
-    nc = next(i for i, c in enumerate(hn) if c in HDR_NAME)
+    h, hn, nc = header_row(rows)
     ta = hn.index('total assets'); gw = next(i for i, c in enumerate(hn) if c in HDR_GWP)
     out = []
-    for r in rows[h + 1:]:
-        nm = r[nc] if nc < len(r) else None
-        if nm is None or not str(nm).strip(): continue
-        if re.match(r'^\s*(total|industry|grand)', str(nm), re.I): break
+    for r, nm in data_rows(rows, h, nc):
         num = lambda v: float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else np.nan
         vals = {hn[i]: num(r[i]) for i in range(len(hn)) if hn[i] and i != nc and i < len(r)}
-        out.append(dict(source_name=str(nm).strip(), insurer_id=map_id(nm, year), year=year,
+        out.append(dict(source_name=nm, insurer_id=map_id(nm, year), year=year,
                         total_assets_raw=num(r[ta]), wb_gwp=num(r[gw]), vals=vals))
     return out
 
-wb = openpyxl.load_workbook(QUARTERLY_FILE, data_only=True, read_only=True)
+wb = open_workbook()
 sheets = {}
 for s in wb.sheetnames:
-    m = re.match(r'^\s*q\s*([34])\s*,?\s*(\d{4})\s*$', s, re.I)
-    if m and int(m.group(2)) in YEARS: sheets[(int(m.group(1)), int(m.group(2)))] = s
+    qy = sheet_quarter(s)
+    if qy and qy[0] in (3, 4) and qy[1] in YEARS: sheets[qy] = s
 missing = [(q, y) for y in YEARS for q in (3, 4) if (q, y) not in sheets]
 if missing: sys.exit(f"Missing Q3/Q4 sheets for {missing}")
 Q4 = pd.DataFrame([r for y in YEARS for r in read_sheet(wb[sheets[(4, y)]], y)])
@@ -100,12 +80,11 @@ prev = pos.groupby(Q4.insurer_id).shift(); consec = Q4.year.diff().eq(1) & Q4.in
 ratio = (pos / prev).where(consec)
 Q4['flag_jump'] = (ratio > 3) | (ratio < 1 / 3)
 Q4['total_assets'] = Q4.total_assets_raw.where(~Q4.flag_concordance_fail & ~Q4.flag_nonpositive & Q4.total_assets_raw.notna())
-CONFIDENTIAL.mkdir(parents=True, exist_ok=True)
 cols = ['insurer_id', 'year', 'source_name', 'total_assets', 'total_assets_raw', 'wb_gwp', 'panel_gwp', 'gwp_rel_diff',
         'flag_copy_forward', 'flag_concordance_fail', 'flag_nonpositive', 'flag_jump']
-Q4[cols].to_csv(CONFIDENTIAL / 'total_assets_q4.csv', index=False)
+Q4[cols].to_csv(PROCESSED / 'total_assets_q4.csv', index=False)
 
-# coverage by year (aggregate; insurer IDs are public NIC names, no confidential values)
+# coverage by year
 ids = lambda d: ';'.join(sorted(d.insurer_id))
 cov = []
 for y, d in Q4.groupby('year'):
@@ -149,4 +128,4 @@ print(cov.drop(columns=['concordance_failed_ids']).to_string(index=False))
 print(f"\nSubsample with ln_assets_L1: {len(S)} of {len(E)} rows, {S.insurer_id.nunique()} insurers. Within-insurer corr(ln_assets_L1, ln_gwp_L1) = {corr_within:.3f}")
 show = R[R.term.isin(['g_L1_w', 'ln_gwp_L1', 'ln_assets_L1'])]
 print(show.round(4).to_string(index=False))
-print("Saved: robust_total_assets.csv, robust_total_assets_coverage.csv (confidential detail in data/processed/confidential/)")
+print("Saved: robust_total_assets.csv, robust_total_assets_coverage.csv (insurer-level detail in data/processed/total_assets_q4.csv)")

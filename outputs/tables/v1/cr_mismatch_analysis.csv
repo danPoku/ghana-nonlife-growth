@@ -1,0 +1,73 @@
+section,sample,item,metric,value
+by_year,all_mismatched,2015,n_mismatched,21.0
+by_year,all_mismatched,2015,n_comparable,23.0
+by_year,all_mismatched,2015,median_abs_d,12.0
+by_year,all_mismatched,2015,min_d,-379.0
+by_year,all_mismatched,2015,max_d,59.0
+by_year,all_mismatched,2016,n_mismatched,20.0
+by_year,all_mismatched,2016,n_comparable,23.0
+by_year,all_mismatched,2016,median_abs_d,10.5
+by_year,all_mismatched,2016,min_d,-53.0
+by_year,all_mismatched,2016,max_d,70.0
+by_year,all_mismatched,2021,n_mismatched,2.0
+by_year,all_mismatched,2021,n_comparable,26.0
+by_year,all_mismatched,2021,median_abs_d,14.0
+by_year,all_mismatched,2021,min_d,-17.0
+by_year,all_mismatched,2021,max_d,11.0
+formula_fit,2015-2016,LR+ER,n,41.0
+formula_fit,2015-2016,LR+ER,r_squared,-3.306994093765483
+formula_fit,2015-2016,LR+ER,median_abs_error,12.0
+formula_fit,2015-2016,LR+ER*RET/100,n,41.0
+formula_fit,2015-2016,LR+ER*RET/100,r_squared,-2.229780968641471
+formula_fit,2015-2016,LR+ER*RET/100,median_abs_error,26.040000000000006
+formula_fit,2015-2016,(LR+ER)*RET/100,n,41.0
+formula_fit,2015-2016,(LR+ER)*RET/100,r_squared,-3.6790139243251083
+formula_fit,2015-2016,(LR+ER)*RET/100,median_abs_error,38.31999999999999
+formula_fit,2015-2016,LR*RET/100+ER,n,41.0
+formula_fit,2015-2016,LR*RET/100+ER,r_squared,-3.5156063993712365
+formula_fit,2015-2016,LR*RET/100+ER,median_abs_error,16.80000000000001
+formula_fit,2015-2016,LR+ER/(RET/100),n,41.0
+formula_fit,2015-2016,LR+ER/(RET/100),r_squared,-13.797342722350983
+formula_fit,2015-2016,LR+ER/(RET/100),median_abs_error,36.6875
+formula_fit,2015-2016,(LR+ER)/(RET/100),n,41.0
+formula_fit,2015-2016,(LR+ER)/(RET/100),r_squared,-22.029786935822564
+formula_fit,2015-2016,(LR+ER)/(RET/100),median_abs_error,55.19753086419752
+correlation,2015-2016,"corr(d,RET)",pearson,-0.09218678228083525
+correlation,2015-2016,"corr(d,ER)",pearson,-0.9274320355488737
+correlation,2015-2016,"corr(d,LR)",pearson,0.15912283806653138
+formula_fit,all_mismatched,LR+ER,n,43.0
+formula_fit,all_mismatched,LR+ER,r_squared,-3.102489610920914
+formula_fit,all_mismatched,LR+ER,median_abs_error,12.0
+formula_fit,all_mismatched,LR+ER*RET/100,n,43.0
+formula_fit,all_mismatched,LR+ER*RET/100,r_squared,-2.095327897584136
+formula_fit,all_mismatched,LR+ER*RET/100,median_abs_error,26.040000000000006
+formula_fit,all_mismatched,(LR+ER)*RET/100,n,43.0
+formula_fit,all_mismatched,(LR+ER)*RET/100,r_squared,-3.4924980508365095
+formula_fit,all_mismatched,(LR+ER)*RET/100,median_abs_error,33.31
+formula_fit,all_mismatched,LR*RET/100+ER,n,43.0
+formula_fit,all_mismatched,LR*RET/100+ER,r_squared,-3.2961726477079427
+formula_fit,all_mismatched,LR*RET/100+ER,median_abs_error,16.400000000000006
+formula_fit,all_mismatched,LR+ER/(RET/100),n,43.0
+formula_fit,all_mismatched,LR+ER/(RET/100),r_squared,-13.221848399928302
+formula_fit,all_mismatched,LR+ER/(RET/100),median_abs_error,36.6875
+formula_fit,all_mismatched,(LR+ER)/(RET/100),n,43.0
+formula_fit,all_mismatched,(LR+ER)/(RET/100),r_squared,-21.145489421353712
+formula_fit,all_mismatched,(LR+ER)/(RET/100),median_abs_error,55.19753086419752
+correlation,all_mismatched,"corr(d,RET)",pearson,-0.0835625210935113
+correlation,all_mismatched,"corr(d,ER)",pearson,-0.9263249156185867
+correlation,all_mismatched,"corr(d,LR)",pearson,0.1438666046392498
+impossible_rows,all_mismatched,IMPERIAL 2015,LR,30.0
+impossible_rows,all_mismatched,IMPERIAL 2015,ER,220.0
+impossible_rows,all_mismatched,IMPERIAL 2015,CR_nic,166.0
+impossible_rows,all_mismatched,IMPERIAL 2015,RET,76.0
+impossible_rows,all_mismatched,IMPERIAL 2015,d,-84.0
+impossible_rows,all_mismatched,NSIA 2015,LR,24.0
+impossible_rows,all_mismatched,NSIA 2015,ER,495.0
+impossible_rows,all_mismatched,NSIA 2015,CR_nic,140.0
+impossible_rows,all_mismatched,NSIA 2015,RET,74.0
+impossible_rows,all_mismatched,NSIA 2015,d,-379.0
+impossible_rows,all_mismatched,UNIQUE 2016,LR,51.0
+impossible_rows,all_mismatched,UNIQUE 2016,ER,121.0
+impossible_rows,all_mismatched,UNIQUE 2016,CR_nic,119.0
+impossible_rows,all_mismatched,UNIQUE 2016,RET,84.0
+impossible_rows,all_mismatched,UNIQUE 2016,d,-53.0

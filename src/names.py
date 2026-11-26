@@ -1,4 +1,4 @@
-"""Canonical insurer IDs, shared by step 02 (NIC reports) and step 09 (quarterly returns workbook)."""
+"""Canonical insurer IDs, shared by step 02 (NIC reports) and steps 09 and 12 (NIC quarterly returns workbook)."""
 import re
 
 CANON=[('ACTIVA',r'^activa'),('ALLIANZ',r'^allianz(?! life)'),('BEDROCK',r'^bedrock'),('BEST',r'^best'),

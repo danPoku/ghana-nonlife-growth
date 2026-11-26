@@ -1,0 +1,114 @@
+
+==== TWFE (M1) LR_w  | insurer-clustered SEs ====
+                Estimate Std. Error    t value  Pr(>|t|)
+g_L1_w        0.02611212 0.05230772  0.4992019 0.6184378
+RET           0.03633780 0.10376680  0.3501871 0.7267361
+ln_gwp_L1     3.70012908 3.36595307  1.0992812 0.2735734
+LEV_net_L1_w -0.00501388 0.03867493 -0.1296416 0.8970401
+
+==== TWFE (M1) ER_w  | insurer-clustered SEs ====
+                 Estimate Std. Error    t value    Pr(>|t|)
+g_L1_w         0.03239046 0.04106330  0.7887934 0.431595637
+RET           -0.28653384 0.10307061 -2.7799763 0.006201182
+ln_gwp_L1    -11.42662719 5.14052250 -2.2228533 0.027864542
+LEV_net_L1_w   0.01336301 0.06359969  0.2101112 0.833893011
+
+==== TWFE (M1) CR_w  | insurer-clustered SEs ====
+                 Estimate Std. Error    t value  Pr(>|t|)
+g_L1_w        0.054690870 0.08806294  0.6210430 0.5356032
+RET          -0.245740447 0.19672969 -1.2491274 0.2137485
+ln_gwp_L1    -8.389548127 6.79455038 -1.2347466 0.2190384
+LEV_net_L1_w  0.007792899 0.06172759  0.1262466 0.8997218
+
+==== System GMM LR (two-step, Windmeijer-robust SEs) ====
+Twoways effects Two-steps model System GMM 
+
+Call:
+pgmm(formula = f, data = pp, effect = "twoways", model = "twosteps", 
+    collapse = TRUE, transformation = "ld")
+
+Unbalanced Panel: n = 29, T = 1-8, N = 202
+
+Number of Observations Used: 313
+Residuals:
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+-46.8185  -6.1735   0.0000   0.6617   5.9695  70.6097 
+
+Coefficients:
+                 Estimate Std. Error z-value Pr(>|z|)  
+lag(LR, 1)      -0.159756   0.104566 -1.5278  0.12656  
+lag(g, 1)        0.092083   0.096493  0.9543  0.33993  
+RET             -0.084018   0.124583 -0.6744  0.50006  
+lag(ln_gwp, 1)   2.913490   1.720195  1.6937  0.09032 .
+lag(LEV_net, 1)  0.063999   0.037504  1.7065  0.08792 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Sargan test: chisq(7) = 9.876656 (p-value = 0.19567)
+Autocorrelation test (1): normal = -4.33808 (p-value = 1.4373e-05)
+Autocorrelation test (2): normal = -0.8661923 (p-value = 0.38638)
+Wald test for coefficients: chisq(5) = 9.079464 (p-value = 0.10594)
+Wald test for time dummies: chisq(6) = 29.64497 (p-value = 4.5912e-05)
+Insurers: 29 -- check the instrument count in the summary stays well below this.
+
+==== System GMM ER (two-step, Windmeijer-robust SEs) ====
+Twoways effects Two-steps model System GMM 
+
+Call:
+pgmm(formula = f, data = pp, effect = "twoways", model = "twosteps", 
+    collapse = TRUE, transformation = "ld")
+
+Unbalanced Panel: n = 29, T = 1-8, N = 202
+
+Number of Observations Used: 313
+Residuals:
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+-62.4251  -6.1027   0.0000   0.8078   5.7371 100.3983 
+
+Coefficients:
+                  Estimate Std. Error z-value Pr(>|z|)  
+lag(ER, 1)       0.1422773  0.1394872  1.0200  0.30773  
+lag(g, 1)        0.0096393  0.0492141  0.1959  0.84472  
+RET             -0.2850336  0.1131365 -2.5194  0.01176 *
+lag(ln_gwp, 1)  -9.3323951  4.3879262 -2.1268  0.03343 *
+lag(LEV_net, 1) -0.0250480  0.0529890 -0.4727  0.63643  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Sargan test: chisq(7) = 4.4026 (p-value = 0.73241)
+Autocorrelation test (1): normal = -1.427719 (p-value = 0.15337)
+Autocorrelation test (2): normal = -0.03484552 (p-value = 0.9722)
+Wald test for coefficients: chisq(5) = 23.9414 (p-value = 0.00022282)
+Wald test for time dummies: chisq(6) = 49.93906 (p-value = 4.8352e-09)
+Insurers: 29 -- check the instrument count in the summary stays well below this.
+
+==== System GMM CR (two-step, Windmeijer-robust SEs) ====
+Twoways effects Two-steps model System GMM 
+
+Call:
+pgmm(formula = f, data = pp, effect = "twoways", model = "twosteps", 
+    collapse = TRUE, transformation = "ld")
+
+Unbalanced Panel: n = 29, T = 1-8, N = 202
+
+Number of Observations Used: 313
+Residuals:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+-63.554  -9.921   0.000   1.069   9.118 150.328 
+
+Coefficients:
+                  Estimate Std. Error z-value Pr(>|z|)   
+lag(CR, 1)       -0.198861   0.164942 -1.2056 0.227957   
+lag(g, 1)         0.163879   0.126681  1.2936 0.195792   
+RET              -0.471391   0.147051 -3.2056 0.001348 **
+lag(ln_gwp, 1)  -10.933714   4.866400 -2.2468 0.024654 * 
+lag(LEV_net, 1)   0.016817   0.059857  0.2810 0.778740   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Sargan test: chisq(7) = 4.184436 (p-value = 0.75831)
+Autocorrelation test (1): normal = -1.006469 (p-value = 0.31419)
+Autocorrelation test (2): normal = -1.065441 (p-value = 0.28668)
+Wald test for coefficients: chisq(5) = 14.29908 (p-value = 0.013817)
+Wald test for time dummies: chisq(6) = 68.11762 (p-value = 9.9395e-13)
+Insurers: 29 -- check the instrument count in the summary stays well below this.
