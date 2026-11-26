@@ -6,7 +6,8 @@ recording growth (g_L1_w) and size (v1: ln_gwp_L1; v2: ln_assets_L1).
 
 WINSORISING: the existing _w values in the estimation sample are used unchanged. Bounds are NOT recomputed
 after dropping an insurer, so each run changes only the sample, not the variable definitions.
-v1: estimation_sample.csv, checked against regressions.csv -> robust_leave_one_out*.csv (the v1 figure is frozen in outputs/figures/v1/).
+v1: estimation_sample.csv, checked against regressions.csv -> robust_leave_one_out*.csv
+(the v1 figure is frozen in outputs/figures/v1/).
 v2: data/processed/estimation_sample_v2.csv, checked against main_models_v2.csv
 -> robust_leave_one_out*_v2.csv (aggregate) and thesis Figure 8 (Figure_8_leave_one_out.png).
 """
@@ -17,6 +18,11 @@ from config import PROCESSED, TABLES, FIGURES
 from models import fe
 
 Ys = ['LR_w', 'ER_w', 'CR_w']
+OUTCOME_LABEL = {'LR_w': 'Loss ratio', 'ER_w': 'Expense ratio', 'CR_w': 'Combined ratio'}
+# Figure 8 labels: the display names used in the tables (insurer_name in panel_master.csv, step 03), except
+# SAHAM_SANLAM, shown as "SanlamAllianz" to match the thesis text (the tables print "Saham / Sanlam / SanlamAllianz").
+DISPLAY = pd.read_csv(PROCESSED / 'panel_master.csv').drop_duplicates('insurer_id').set_index('insurer_id').insurer_name.to_dict()
+DISPLAY['SAHAM_SANLAM'] = 'SanlamAllianz'
 
 def loo(E, X, terms, ref_coef):
     full = {}
@@ -47,16 +53,16 @@ def figure(L, full, title, path):
     """Thesis Figure 8: g_L1_w with 95% CI per dropped insurer, one panel per outcome, same insurer order in every panel.
     The full-sample estimate is the dashed line, with its value in the panel title (no floating label)."""
     ink, accent = '#333333', '#2e75b6'
-    f, axs = plt.subplots(1, 3, figsize=(10, 7.5), sharey=True)
-    order = sorted(L.dropped.unique()); ypos = {ins: i for i, ins in enumerate(order)}
+    f, axs = plt.subplots(1, 3, figsize=(10.5, 7.5), sharey=True)
+    order = sorted(L.dropped.unique(), key=lambda i: DISPLAY[i].lower()); ypos = {ins: i for i, ins in enumerate(order)}
     for ax, y in zip(axs, Ys):
         d = L[L.outcome == y]; yy = d.dropped.map(ypos); b0 = full[y].params['g_L1_w']
         ax.errorbar(d.g_L1_w_coef, yy, xerr=1.96 * d.g_L1_w_se, fmt='o', ms=4, color=accent, ecolor=accent, elinewidth=1, capsize=0)
         ax.axvline(b0, color=accent, lw=1, ls='--'); ax.axvline(0, color=ink, lw=.8)
-        ax.set_title(f"{y.replace('_w', '')}  (full sample {b0:+.3f}, dashed)", loc='left', fontsize=10)
+        ax.set_title(f"{OUTCOME_LABEL[y]}\nfull sample {b0:+.3f} (dashed)", loc='left', fontsize=9.5)
         ax.tick_params(labelsize=7); ax.grid(axis='x', color='#e5e5e5', lw=.6); ax.set_axisbelow(True)
         for s in ('top', 'right'): ax.spines[s].set_visible(False)
-    axs[0].set_yticks(range(len(order))); axs[0].set_yticklabels(order); axs[0].set_ylabel('Insurer dropped', fontsize=8)
+    axs[0].set_yticks(range(len(order))); axs[0].set_yticklabels([DISPLAY[i] for i in order]); axs[0].set_ylabel('Insurer dropped', fontsize=8)
     axs[0].set_ylim(len(order) - .5, -.5)
     f.supxlabel('Coefficient on lagged premium growth: pp change in the ratio per 1 pp of growth (95% CI)', fontsize=8)
     f.suptitle(title, x=.01, ha='left', fontsize=10)

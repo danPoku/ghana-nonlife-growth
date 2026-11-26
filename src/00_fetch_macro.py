@@ -34,7 +34,7 @@ lines = [f'# Macro data snapshot', '',
          f'- **Retrieved:** {date.today().isoformat()} (WDI last updated {meta.get("lastupdated")})',
          f'- **File:** `{WDI_CPI_FILE.name}` (raw API response, unchanged)',
          f'- **Original source:** Ghana Statistical Service (GSS), compiled by the World Bank',
-         f'- **Used for:** deflating premium growth (`g_real`, Figure 5) by annual-average CPI inflation',
+         f'- **Used for:** deflating premium growth (`g_real`, Figure 3) by annual-average CPI inflation',
          f'- **Refresh:** `python src/00_fetch_macro.py`, then rerun the pipeline. Values may be revised between WDI releases.',
          '', '| Year | Inflation, annual average (%) |', '|---|---|']
 lines += [f'| {y} | {vals[y]} |' for y in sorted(vals)]
