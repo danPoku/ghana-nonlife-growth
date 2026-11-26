@@ -65,6 +65,11 @@ CR constructed as LR+ER; MID tested as a post-2020 slope change (insurer-by-clas
 clustered-SE correction counts year effects, not insurer effects (D12: year effects entered as explicit
 dummies in models.fe(), since linearmodels ignores count_effects=False with time_effects=True).
 
+## Terminology
+The three experiment plans (Akotey replication; early warning Exp 1-2; early warning v2 additions) are "pre-specified
+analysis plans", not "pre-registered" (see README, "Pre-specified analysis plans"). Never edit the frozen plan sections
+in experiments/*/README.md; notes go below them.
+
 ## Open items
-AR tests differ between pydynpd and R pgmm (needs a third reference, e.g. Stata xtabond2); verify methods citations;
-identify the reinsurer behind the production file.
+AR tests differ between pydynpd and R pgmm (needs a third reference, e.g. Stata xtabond2); verify methods citations.
+The facultative step (06) is excluded from the public pipeline: its source is confidential.

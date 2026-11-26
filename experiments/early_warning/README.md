@@ -134,6 +134,8 @@ Further amendments:
 - Outputs: `outputs/exp2_results.csv` (aggregate), `outputs/exp2_units.csv` (per-sheet units);
   insurer-level data in `outputs/confidential/`.
 
+Note (25 Nov 2026): described in the thesis as a pre-specified analysis plan.
+
 ## 4. Deviations and results (added AFTER analysis; sections 1-3 unchanged since commit 98b4e34)
 
 ### Deviations from the pre-registration
@@ -244,6 +246,8 @@ submissions. Insurer-level outputs stay in `outputs/confidential/` (git-ignored)
   `outputs/exp3_results.csv`, `outputs/exp3_ifrs17.csv`; insurer-level in `outputs/confidential/`.
 - Anything changed during analysis is recorded, with its reason, in a section 6 "Deviations and results (v2
   additions)"; sections 1-5 stay unchanged after the commit that section 6 names.
+
+Note (25 Nov 2026): described in the thesis as a pre-specified analysis plan.
 
 ## 6. Deviations and results, v2 additions (added AFTER analysis; sections 1-5 unchanged since commit 3eef056)
 

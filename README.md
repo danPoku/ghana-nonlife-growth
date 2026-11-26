@@ -77,24 +77,30 @@ needs a confidential file that is not included; the step skips without it. The v
 
 ## Status and open items
 
-- [ ] Authors and supervisor agree the methodology changes (D1–D21; v2 = D14–D21)
+- [ ] Authors and supervisor agree the methodology changes (D1–D22; v2 = D14–D22)
 - [ ] Run and check the R script (System GMM)
+- [ ] AR(1)/AR(2) tests differ between pydynpd and R `pgmm`: check against a third implementation (e.g. Stata `xtabond2`)
 - [ ] Verify CPI 2015–18 and 2021 against Ghana Statistical Service
 - [ ] Verify methods citations (APA 7)
-- [ ] Identify the reinsurer behind the production report (for citation)
+
+The supplementary facultative-reinsurance analysis (step 6) is excluded from the public pipeline because its source,
+a reinsurer's production report, is confidential; the step skips when the file is absent.
 
 ## Sources
 
 National Insurance Commission. *Annual report on the insurance industry* (2019, 2020, 2022, 2024 eds.). NIC, Accra.
 Insurance Act, 2021 (Act 1061). Republic of Ghana.
 
-## Pre-registrations
+## Pre-specified analysis plans
 
-Three analyses were pre-registered: the README section was committed before any analysis was run. The
-original working repository had different commit hashes from this published history (it was replayed to
-remove confidential files); the pre-registered text is byte-identical in both, so both hashes are listed.
+Three analyses follow a pre-specified analysis plan, written in the experiment's README and committed before any
+analysis was run. The plans were committed and pushed before estimation (1 November 2026 and 21 November 2026); they
+were not lodged with an independent registry. The original working repository had different commit hashes from this
+published history (it was replayed to remove confidential files); the plan text is byte-identical in both, so both
+hashes are listed. The experiment READMEs keep their original wording ("pre-registered") because the plan sections
+are frozen; a dated note below each plan records the change of term.
 
-| Analysis | Pre-registration commit (date, UTC) | Results commit | Deviations |
+| Analysis | Plan commit (date, UTC) | Results commit | Deviations |
 |---|---|---|---|
 | Akotey et al. (2023) replication (`experiments/akotey_replication/`) | `27f0cb3` (= `2c0df93` in the working repository), 1 Nov 2026 11:57 | `184de4e`, 2 Nov 2026 | 1: the balanced subsample was redefined because MSGR cannot exist in 2015 (README section 4). Bootstrap p-values later updated for D14 and its addendum; verdicts unchanged |
 | Early warning, Experiments 1-2 (`experiments/early_warning/`) | `00a2c89` (= `98b4e34`), 1 Nov 2026 09:06 | `4595f99`, 1 Nov 2026 | 2: Exp 2 ignores the Q2 2022 expense-ratio column (a copy of the claims ratio); Exp 1 bootstrap reimplemented with identical draws (README section 4) |
