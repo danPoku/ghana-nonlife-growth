@@ -55,18 +55,18 @@ out['appendix_gmm.csv'] = (pd.concat([gm[['estimator', 'variant', 'outcome', 'te
                            'v2 panel 2015-2022, start-ups excluded; component-based outcomes, single growth measure, ln(total assets) as size; '
                            'pooled 1/99 winsorising; System GMM lags 2-3 (variant lags 2-4); Anderson-Hsiao: dY(t-1) instrumented by Y(t-2), clustered SEs.')
 
-# 4. Akotey replication, parts A and B (pre-registered, v1 data)
+# 4. Akotey replication, parts A and B (pre-specified plan, v1 data)
 A = pd.read_csv(AK / 'gmm_results.csv').merge(pd.read_csv(AK / 'gmm_diagnostics.csv').drop(columns=['command']), on=['sample', 'spec', 'outcome'])
 Bb = pd.read_csv(AK / 'bridge_results.csv').rename(columns={'p': 'p_cluster', 'wcb_p': 'p_wcb', 'n': 'n_obs', 'version': 'sample', 'model': 'spec'})
 out['appendix_replication.csv'] = (pd.concat([A.assign(part='A: difference GMM'), Bb.assign(part='B: timing bridge (two-way FE)')], ignore_index=True),
-                                   'Pre-registered (experiments/akotey_replication/README.md); v1 audited data (panel_master), 2015-2022, start-ups excluded; '
+                                   'Pre-specified plan (1 Nov 2026; experiments/akotey_replication/README.md); v1 audited data (panel_master), 2015-2022, start-ups excluded; '
                                    'A: Arellano-Bond difference GMM, two-step Windmeijer; B: models.fe + wild cluster bootstrap (after D14 and its addendum).')
 
 # 5. Early warning (Experiments 1-3)
-e1 = pd.read_csv(EW / 'exp1_results.csv').assign(section='Exp 1: annual (v1 data; pre-registered 00a2c89)')
-e2 = pd.read_csv(EW / 'exp2_results.csv').rename(columns={'score': 'method', 'analysis': 'target'}).assign(section='Exp 2: quarterly nowcast (pre-registered 00a2c89)')
+e1 = pd.read_csv(EW / 'exp1_results.csv').assign(section='Exp 1: annual (v1 data; pre-specified plan (1 Nov 2026))')
+e2 = pd.read_csv(EW / 'exp2_results.csv').rename(columns={'score': 'method', 'analysis': 'target'}).assign(section='Exp 2: quarterly nowcast (pre-specified plan (1 Nov 2026))')
 e3 = pd.read_csv(EW / 'exp3_results.csv')
-e3['section'] = e3.item.map({'4a': 'v2 additions: annual, CR(t-1) vs growth (pre-registered 3eef056)', '4a (Exp 1 v1 data)': 'v2 additions: annual, CR(t-1) vs growth (pre-registered 3eef056)',
+e3['section'] = e3.item.map({'4a': 'v2 additions: annual, CR(t-1) vs growth (pre-specified plan (21 Nov 2026))', '4a (Exp 1 v1 data)': 'v2 additions: annual, CR(t-1) vs growth (pre-specified plan (21 Nov 2026))',
                              '4b': 'v2 additions: quarterly indicators', '4c': 'v2 additions: incremental test (decision rule)', '4d': 'v2 additions: non-submission (exploratory)'})
 i17 = pd.read_csv(EW / 'exp3_ifrs17.csv').assign(section='v2 additions: IFRS 17 recalibration (descriptive)')
 i17['label'] = np.where(i17.section.eq('v2 additions: IFRS 17 recalibration (descriptive)') & i17.youden_cutoff.notna(),

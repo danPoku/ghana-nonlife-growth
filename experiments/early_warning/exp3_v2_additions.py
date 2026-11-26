@@ -1,4 +1,4 @@
-"""Experiment 3 (exploratory): v2 additions 4a-4e, pre-registered in README.md section 5 (commit 3eef056, pushed
+"""Experiment 3 (exploratory): v2 additions 4a-4e, pre-specified in README.md section 5 (commit 3eef056, pushed
 before this script was written). Implements section 5 as written; anything that had to change is in section 6.
 
 Data: data/processed/panel_v2.csv, returns_quarterly.csv, returns_panel.csv (pipeline steps 12 and 03;
@@ -191,5 +191,5 @@ print(f"Rows: train {len(tr_all)}, test {len(te_all)} insurer-years (t = 2016-20
 print(Rs.drop(columns=[c for c in ['coefs'] if c in Rs]).round(3).to_string(index=False))
 print(I17.round(3).to_string(index=False))
 v = Rs[(Rs.item == '4c') & (Rs.target.str.startswith('primary')) & Rs.method.str.startswith('DIFF B')].iloc[0]
-print(f"\n4c VERDICT (pre-registered rule, primary target): {v.readout}. AUC(B) - AUC(A) = {v.auc:+.3f}, "
+print(f"\n4c VERDICT (pre-specified rule, primary target): {v.readout}. AUC(B) - AUC(A) = {v.auc:+.3f}, "
       f"paired 95% CI [{v.ci_lo:+.3f}, {v.ci_hi:+.3f}], n = {v.n} test rows ({v.n_red} red).")

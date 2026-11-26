@@ -1,4 +1,4 @@
-"""Specification B (throwaway, pre-registered in README.md): timing bridge between Akotey et al. and the thesis.
+"""Specification B (throwaway, pre-specified analysis plan in README.md): timing bridge between Akotey et al. and the thesis.
 
 Two-way FE (models.fe, D12) with insurer-clustered SEs and wild cluster bootstrap (models.wcb), outcomes
 UW_margin, CR, LR, ER: B1 same-year g, B2 lagged g (thesis spec), B3 both. Controls RET, ln_gwp_L1, LEV_net_L1.

@@ -136,6 +136,8 @@ Further amendments:
 
 Note (25 Nov 2026): described in the thesis as a pre-specified analysis plan.
 
+Note (26 Nov 2026): the NIC quarterly returns workbook is now public and tracked (`data/raw/quarterly/`). Insurer-level files named above as `outputs/confidential/` are now in `outputs/` (tracked), and those named as `data/processed/confidential/` are now in `data/processed/` (tracked).
+
 ## 4. Deviations and results (added AFTER analysis; sections 1-3 unchanged since commit 98b4e34)
 
 ### Deviations from the pre-registration
@@ -248,6 +250,8 @@ submissions. Insurer-level outputs stay in `outputs/confidential/` (git-ignored)
   additions)"; sections 1-5 stay unchanged after the commit that section 6 names.
 
 Note (25 Nov 2026): described in the thesis as a pre-specified analysis plan.
+
+Note (26 Nov 2026): the NIC quarterly returns workbook is now public and tracked (`data/raw/quarterly/`). Insurer-level files named above as `outputs/confidential/` are now in `outputs/` (tracked), and those named as `data/processed/confidential/` are now in `data/processed/` (tracked).
 
 ## 6. Deviations and results, v2 additions (added AFTER analysis; sections 1-5 unchanged since commit 3eef056)
 

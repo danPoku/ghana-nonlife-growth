@@ -1,4 +1,4 @@
-"""Specification A (throwaway, pre-registered in README.md): Akotey et al. (2023) difference GMM on 2015-2022.
+"""Specification A (throwaway, pre-specified analysis plan in README.md): Akotey et al. (2023) difference GMM on 2015-2022.
 
 Y on L1.Y, PGR, MSGR, MANCOMP, UWRISK (col. 2) [+ REINS, infl (col. 3)]; gmm(Y, 2:3), other regressors IV-style;
 nolevel collapse, two-step Windmeijer. Secondary A-yd: col. 2 + year dummies. Samples: thesis and balanced.

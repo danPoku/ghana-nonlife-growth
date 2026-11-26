@@ -1,4 +1,4 @@
-"""Experiment 1 (exploratory, pre-registered in README.md): annual early warning of the red zone.
+"""Experiment 1 (exploratory, pre-specified analysis plan in README.md): annual early warning of the red zone.
 
 Red zone: CR(t) > 110 (sensitivity: CR > 100 in t and t-1). Indicators at t-1 from panel_master.csv,
 training t = 2016-2020, test t = 2021-2022. Methods: (a) binary rule CR(t-1) > 110, (b) single-indicator

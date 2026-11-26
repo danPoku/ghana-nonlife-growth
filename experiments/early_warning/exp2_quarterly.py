@@ -1,4 +1,4 @@
-"""Experiment 2 (exploratory, pre-registered in README.md): quarterly nowcast of the red zone.
+"""Experiment 2 (exploratory, pre-specified analysis plan in README.md): quarterly nowcast of the red zone.
 
 Does year-to-date CR at Q2 (Q3 for reference) from the NIC quarterly returns workbook
 predict full-year CR > 110? Primary target: audited panel CR (2015-2022). Secondary: workbook Q4 CR
@@ -80,7 +80,7 @@ for s, d in Q.groupby('sheet', sort=False):
                       expense_ratio_agrees=bool((med_e < 3) == frac),
                       share_expense_equals_claims=float((both.claims_ratio == both.expense_ratio).mean())))
 U = pd.DataFrame(units).sort_values(['year', 'q'])
-# DEVIATION from the pre-registration (found while running): in a sheet whose expense-ratio column copies the
+# DEVIATION from the pre-specified plan (found while running): in a sheet whose expense-ratio column copies the
 # claims-ratio column (Q2 2022: 25 of 25 rows), YTD CR would be 2 x claims ratio. Such sheets (>= 90% of rows
 # equal) get their ratios set to missing; nothing is recomputed from amounts.
 U['ratios_invalid'] = U.share_expense_equals_claims >= 0.9

@@ -136,6 +136,8 @@ Interpretation rules (applied to B1/B2 on CR, using wild cluster bootstrap p-val
 
 Note (25 Nov 2026): described in the thesis as a pre-specified analysis plan.
 
+Note (26 Nov 2026): this plan uses only the public NIC annual-report panel (`data/processed/panel_master.csv`). Since the public release all insurer-level files, including those derived from the NIC quarterly returns workbook, are tracked in `data/processed/`; no confidential folder remains.
+
 ## 4. Deviation and results (added AFTER analysis; sections 1-3 unchanged since commit 2c0df93)
 
 ### Deviation (found before any model was run)
