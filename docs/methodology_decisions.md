@@ -186,7 +186,7 @@ The step runs after 07_validate.py and its results are **not pinned**.
 ## Headline results, v2 (21 Nov 2026; pinned in 07 as "v2 (thesis, requires NIC workbook)"; the workbook is tracked since 25 Nov 2026)
 - **Lagged growth -> CR:** +0.016 pp per 1 pp (SE 0.091; bootstrap p = 0.92); +10 pp growth: 95% CI [-1.6, +1.9] pp; MDE 2.5 pp. Null under every specification, outcome variant, System GMM (p >= 0.22), Anderson-Hsiao, leave-one-out (0 of 28 runs significant) and the threshold test.
 - **Size:** no within-insurer effect (ER +3.5, p = 0.74); between insurers, larger insurers have lower expense ratios (-12.1 per log unit, p = 0.043).
-- **Growth between insurers:** faster-growing insurers have lower average ER and CR (Mundlak; -0.25 and -0.28, p = 0.010 and 0.013); the quartile pattern (Figure 3) is this between-insurer difference.
+- **Growth between insurers:** faster-growing insurers have lower average ER and CR (Mundlak; -0.25 and -0.28, p = 0.010 and 0.013); the quartile pattern (Figure 5) is this between-insurer difference.
 - **MID (RQ3):** no year-specific change in the growth slope on CR (joint p = 0.84); 2020 not different from 2021-22 (p = 0.82); no clear pre-trend.
 - **Reverse regression:** no support for "weak insurers shrink" (CR(t-1) -> g(t) +0.09, p = 0.44).
 - **Expenses dominate:** component-based ER is 70-99% of NEP + RIC against LR 30-50% (Figure 2).

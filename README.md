@@ -1,32 +1,72 @@
 # Premium Growth and Underwriting Losses in Ghana's Non-Life Insurance Industry
 
-Data and analysis pipeline for the MSc Actuarial Science thesis by Bismark Kantanka Sarfo and
-Dan Gyinaye Poku (University of Ghana; supervisor Dr. Perpetual Andam Boiquaye).
+Data and analysis pipeline for the MSc Actuarial Science thesis by Bismark Kantanka Sarfo and Dan Gyinaye Poku,
+University of Ghana (supervisor: Dr. Perpetual Andam Boiquaye). One command rebuilds every table and figure in the
+thesis from the data in this repository.
 
-**Question:** does insurer-level premium growth in year *t−1* predict underwriting performance
-(loss, expense and combined ratios) in year *t*, 2015–2024?
+## The question
 
-## Quick start
+Does an insurer's premium growth in year *t−1* predict its underwriting performance (loss, expense and combined
+ratios) in year *t*? Panel of Ghana's non-life insurers, 2015–2024; estimation 2016–2022 (IFRS 4 years), two-way
+fixed effects with insurer-clustered standard errors and a wild cluster bootstrap.
+
+## Main findings
+
+- **Own growth: no detectable effect.** +10 pp of prior-year premium growth changes an insurer's next-year combined ratio by +0.16 pp (95% CI −1.6 to +1.9 pp; wild cluster bootstrap p = 0.92; minimum detectable effect 2.5 pp). The result holds under every specification and robustness check.
+- **Growth between insurers:** insurers that grow faster on average have lower average expense and combined ratios (p = 0.010 and 0.013); this is a difference between insurers, not an effect of an insurer's own growth.
+- **Size:** larger insurers have lower average expense ratios (−12.1 pp per log unit of total assets, p = 0.043), but an insurer's own expense ratio does not fall as it grows (within-insurer +3.5 pp, p = 0.74).
+- **Motor Insurance Database (verification phase, 2020–22):** no detectable change in the growth slope on the combined ratio (joint p = 0.84); the later tariff-enforcement enhancements fall outside the period tested.
+- **Expenses dominate:** the expense ratio is 70–99% of net earned premium plus reinsurance commission, against 30–50% for the loss ratio.
+
+Details and every robustness result: `docs/methodology_decisions.md` ("Headline results") and the appendix tables
+`outputs/tables/appendix_*.csv`.
+
+## Reproduce
 
 ```bash
-# 1. Python 3.11+ (tested on 3.12.3)
 python -m venv .venv
 # Windows:  .venv\Scripts\activate      macOS/Linux:  source .venv/bin/activate
-pip install -r requirements.txt
-
-# 2. Run everything (about 2 minutes)
-python run_all.py            # resume at a script number: python run_all.py --from 4
-
-# 3. Optional: R replication + System GMM (needs R 4.x)
-Rscript R/twfe_and_system_gmm.R
+pip install -r requirements.txt          # Python 3.11+ (tested on 3.12.3)
+python run_all.py                        # about 2 minutes
 ```
 
-The run ends with **48 validation checks**, including two independently pinned result sets: "v1 (public, Tier 1 only)"
-and "v2 (thesis, requires NIC workbook)". All must pass before results are used.
+The run ends with **48 passed, 0 failed**: data-fidelity checks plus two pinned result sets, "v1 (public, Tier 1
+only)" and "v2 (thesis, requires NIC workbook)". Step 6 prints "Production file not found; skipping step 6" (see
+below). Resume at a script number with `python run_all.py --from N`. Optional R replication and System GMM (R 4.x):
+`Rscript R/twfe_and_system_gmm.R`.
 
-All inputs needed for the v1 and v2 results are in the repository, including the NIC quarterly returns workbook
-(published by the NIC), so `python run_all.py` reproduces both. Only the supplementary facultative appendix (step 6)
-needs a confidential file that is not included; the step skips without it. The v1 state is tagged `v1-methodology`.
+## Data sources
+
+- **NIC annual reports** (`data/raw/nic_text/`): National Insurance Commission, *Annual Report on the Insurance
+  Industry*, 2019, 2020, 2022 and 2024 editions, as text extractions (audited insurer-level tables; Tier 1).
+- **NIC quarterly returns workbook** (`data/raw/quarterly/`): National Insurance Commission, Market Report Q2 2026,
+  Non-Life, read from Q1 2013 to Q1 2026. Figures are insurers' unaudited quarterly submissions, compiled and
+  published by the NIC (Tier 2). Source, URL and retrieval date in `data/raw/quarterly/SOURCE.md`.
+- **CPI inflation** (`data/raw/macro/`): World Bank WDI `FP.CPI.TOTL.ZG` (Ghana Statistical Service), offline snapshot.
+
+Every raw file is checked against its SHA-256 in `data/raw/CHECKSUMS` before it is read.
+
+## What is excluded, and why
+
+The supplementary facultative-reinsurance appendix (step 6) uses a reinsurer's production report that contains
+client names. It is confidential and not in the repository; step 6 skips without it. No thesis result in the main
+analysis depends on it.
+
+## v1 and v2
+
+The thesis reports the v2 methodology (component-based ratios from the quarterly returns, total assets as size; see
+`docs/methodology_decisions.md`, D14–D22). The earlier v1 results are kept for the v1 → v2 comparison: frozen outputs in
+`outputs/tables/v1/` and `outputs/figures/v1/`, and git tag `v1-methodology`. Step 07 pins both result sets.
+
+## How to cite
+
+Use the citation in `CITATION.cff` (GitHub: "Cite this repository"):
+
+> Sarfo, B. K., & Poku, D. G. (2026). *Premium Growth and Underwriting Losses in Ghana's Non-Life Insurance Industry:
+> data and analysis pipeline* (Version v2.0-thesis) [Computer software]. https://github.com/danPoku/ghana-nonlife-growth
+
+Code: MIT (`LICENSE`). Data: NIC and World Bank publications remain theirs; derived tables and figures are CC BY 4.0
+(`DATA_NOTICE.md`).
 
 ## Pipeline
 
